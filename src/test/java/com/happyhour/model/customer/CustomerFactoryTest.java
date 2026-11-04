@@ -1,7 +1,8 @@
 package com.happyhour.model.customer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -12,16 +13,16 @@ public class CustomerFactoryTest {
         CustomerFactory factory = new CustomerFactory();
         Customer customer = factory.createCustomer(null);
         assertNotNull(customer);
-        assertEquals(CustomerState.WAITING, customer.getState());
+        assertTrue(customer.canBeServed());
     }
 
     @Test
     void generousCustomerDrinksLonger() {
         Customer customer = new GenerousCustomer(null);
-        customer.startDrinking();
+        customer.serve();
         customer.update(3);
-        assertEquals(CustomerState.DRINKING, customer.getState());
+        assertFalse(customer.hasLeft());
         customer.update(3);
-        assertEquals(CustomerState.LEFT_HAPPY, customer.getState());
+        assertTrue(customer.hasLeft());
     }
 }

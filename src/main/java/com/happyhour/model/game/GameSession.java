@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.customer.CustomerFactory;
-import com.happyhour.model.customer.CustomerState;
+import com.happyhour.model.drink.Drink;
 import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
 import com.happyhour.model.drink.Preparation;
@@ -14,12 +14,13 @@ public class GameSession {
     public static final int SEATS = 6;
     public static final int MAX_LOST = 10;
     public static final double SPAWN_DELAY = 5;
+    public static final double SPEED_BONUS = 1;
 
     private Customer[] seats = new Customer[SEATS];
     private Preparation preparation = new Preparation();
     private ArrayList<GameListener> listeners = new ArrayList<>();
     private CustomerFactory factory = new CustomerFactory();
-    private int tips = 0;
+    private double tips = 0;
     private int lostCustomers = 0;
     private double spawnTimer = 0;
     private boolean over = false;
@@ -49,12 +50,17 @@ public class GameSession {
 
     public void serve(int seat) {
         Customer customer = seats[seat];
-        if (customer == null || customer.getState() != CustomerState.WAITING) {
+        if (customer == null || !customer.canBeServed()) {
             return;
         }
-        int grade = customer.getOrder().grade(preparation);
-        tips = tips + customer.getTip(grade);
-        customer.startDrinking();
+        Drink order = customer.getOrder();
+        int grade = order.grade(preparation);
+        double speedBonus = 0;
+        if (customer.isServedQuickly()) {
+            speedBonus = SPEED_BONUS;
+        }
+        tips = tips + customer.computeTip(order.getBaseTip(grade), speedBonus);
+        customer.serve();
         preparation = new Preparation();
         for (GameListener listener : listeners) {
             listener.onScoreChanged(tips);
@@ -62,9 +68,11 @@ public class GameSession {
     }
 
     public void kick(int seat) {
-        if (seats[seat] == null) {
+        Customer customer = seats[seat];
+        if (customer == null) {
             return;
         }
+        customer.kick();
         loseCustomer(seat);
     }
 
@@ -76,10 +84,12 @@ public class GameSession {
             Customer customer = seats[i];
             if (customer != null) {
                 customer.update(deltaTime);
-                if (customer.getState() == CustomerState.LEFT_ANGRY) {
-                    loseCustomer(i);
-                } else if (customer.getState() == CustomerState.LEFT_HAPPY) {
-                    freeSeat(i);
+                if (customer.hasLeft()) {
+                    if (customer.isLost()) {
+                        loseCustomer(i);
+                    } else {
+                        freeSeat(i);
+                    }
                 }
             }
         }
@@ -129,7 +139,7 @@ public class GameSession {
         return preparation;
     }
 
-    public int getTips() {
+    public double getTips() {
         return tips;
     }
 

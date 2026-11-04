@@ -24,4 +24,6 @@ public abstract class Drink {
     }
 
     public abstract int grade(Preparation preparation);
+
+    public abstract double getBaseTip(int grade);
 }

@@ -5,12 +5,12 @@ import com.happyhour.model.drink.Drink;
 public class GenerousCustomer extends Customer {
 
     public GenerousCustomer(Drink order) {
-        super(order, 30);
+        super(order, 50);
     }
 
     @Override
-    public int getTip(int grade) {
-        return grade;
+    public double computeTip(double baseTip, double speedBonus) {
+        return (baseTip + speedBonus) * 2;
     }
 
     @Override

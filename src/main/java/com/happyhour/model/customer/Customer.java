@@ -5,31 +5,59 @@ import com.happyhour.model.drink.Drink;
 public abstract class Customer {
     private Drink order;
     private double patience;
-    private double drinkingTime = 0;
-    private CustomerState state = CustomerState.WAITING;
+    private double maxPatience;
+    private CustomerState state = new WaitingState();
 
     public Customer(Drink order, double patience) {
         this.order = order;
         this.patience = patience;
+        this.maxPatience = patience;
     }
 
     public void update(double deltaTime) {
-        if (state == CustomerState.WAITING) {
-            patience = patience - deltaTime;
-            if (patience <= 0) {
-                state = CustomerState.LEFT_ANGRY;
-            }
-        } else if (state == CustomerState.DRINKING) {
-            drinkingTime = drinkingTime - deltaTime;
-            if (drinkingTime <= 0) {
-                state = CustomerState.LEFT_HAPPY;
-            }
+        state.update(this, deltaTime);
+    }
+
+    public void serve() {
+        if (canBeServed()) {
+            state = new DrinkingState(getDrinkingDuration());
         }
     }
 
-    public void startDrinking() {
-        state = CustomerState.DRINKING;
-        drinkingTime = getDrinkingDuration();
+    public void kick() {
+        state = new LeftState(true);
+    }
+
+    public boolean canBeServed() {
+        return state.canBeServed();
+    }
+
+    public boolean hasLeft() {
+        return state.hasLeft();
+    }
+
+    public boolean isLost() {
+        return state.isLost();
+    }
+
+    public boolean isServedQuickly() {
+        return patience > maxPatience / 2;
+    }
+
+    public boolean accepts(int grade) {
+        return true;
+    }
+
+    public boolean isChild() {
+        return false;
+    }
+
+    public void reducePatience(double amount) {
+        patience = patience - amount;
+    }
+
+    public void setState(CustomerState state) {
+        this.state = state;
     }
 
     public double getDrinkingDuration() {
@@ -44,9 +72,13 @@ public abstract class Customer {
         return patience;
     }
 
+    public double getMaxPatience() {
+        return maxPatience;
+    }
+
     public CustomerState getState() {
         return state;
     }
 
-    public abstract int getTip(int grade);
+    public abstract double computeTip(double baseTip, double speedBonus);
 }

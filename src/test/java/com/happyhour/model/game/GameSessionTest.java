@@ -14,7 +14,7 @@ public class GameSessionTest {
     void impatientCustomerIsLost() {
         GameSession session = new GameSession();
         session.placeCustomer(0, new NormalCustomer(null));
-        session.update(31);
+        session.update(36);
         assertEquals(1, session.getLostCustomers());
     }
 
