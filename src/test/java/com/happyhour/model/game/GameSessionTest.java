@@ -16,7 +16,6 @@ public class GameSessionTest {
         session.placeCustomer(0, new NormalCustomer(null));
         session.update(31);
         assertEquals(1, session.getLostCustomers());
-        assertNull(session.getCustomer(0));
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.happyhour;
 
-import com.happyhour.model.customer.NormalCustomer;
 import com.happyhour.model.game.GameSession;
 
 import javafx.application.Application;
@@ -25,7 +24,6 @@ public class HappyHourApp extends Application {
         root.getChildren().add(infoLabel);
 
         GameSession session = new GameSession();
-        session.placeCustomer(0, new NormalCustomer(null));
 
         GameLoop gameLoop = new GameLoop(session, infoLabel);
         gameLoop.start();

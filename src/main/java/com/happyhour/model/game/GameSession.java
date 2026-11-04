@@ -3,6 +3,7 @@ package com.happyhour.model.game;
 import java.util.ArrayList;
 
 import com.happyhour.model.customer.Customer;
+import com.happyhour.model.customer.CustomerFactory;
 import com.happyhour.model.customer.CustomerState;
 import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
@@ -12,12 +13,15 @@ import com.happyhour.model.drink.Technique;
 public class GameSession {
     public static final int SEATS = 6;
     public static final int MAX_LOST = 10;
+    public static final double SPAWN_DELAY = 5;
 
     private Customer[] seats = new Customer[SEATS];
     private Preparation preparation = new Preparation();
     private ArrayList<GameListener> listeners = new ArrayList<>();
+    private CustomerFactory factory = new CustomerFactory();
     private int tips = 0;
     private int lostCustomers = 0;
+    private double spawnTimer = 0;
     private boolean over = false;
 
     public void addListener(GameListener listener) {
@@ -79,6 +83,15 @@ public class GameSession {
                 }
             }
         }
+
+        spawnTimer = spawnTimer + deltaTime;
+        if (spawnTimer >= SPAWN_DELAY) {
+            spawnTimer = 0;
+            int seat = findFreeSeat();
+            if (seat != -1) {
+                placeCustomer(seat, factory.createCustomer(null));
+            }
+        }
     }
 
     private void loseCustomer(int seat) {
@@ -97,6 +110,15 @@ public class GameSession {
         for (GameListener listener : listeners) {
             listener.onCustomerLeft(seat);
         }
+    }
+
+    private int findFreeSeat() {
+        for (int i = 0; i < SEATS; i++) {
+            if (seats[i] == null) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public Customer getCustomer(int seat) {
