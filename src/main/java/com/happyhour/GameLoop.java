@@ -1,15 +1,18 @@
 package com.happyhour;
 
+import com.happyhour.model.game.GameSession;
+
 import javafx.animation.AnimationTimer;
 import javafx.scene.control.Label;
 
 public class GameLoop extends AnimationTimer {
     private long lastTime = 0;
-    private double elapsed = 0;
-    private Label timeLabel;
+    private GameSession session;
+    private Label infoLabel;
 
-    public GameLoop(Label timeLabel) {
-        this.timeLabel = timeLabel;
+    public GameLoop(GameSession session, Label infoLabel) {
+        this.session = session;
+        this.infoLabel = infoLabel;
     }
 
     @Override
@@ -21,7 +24,7 @@ public class GameLoop extends AnimationTimer {
         double deltaTime = (now - lastTime) / 1000000000.0;
         lastTime = now;
 
-        elapsed = elapsed + deltaTime;
-        timeLabel.setText("Temps : " + (int) elapsed + " s");
+        session.update(deltaTime);
+        infoLabel.setText("Pourboires : " + session.getTips() + " €   |   Clients perdus : " + session.getLostCustomers());
     }
 }

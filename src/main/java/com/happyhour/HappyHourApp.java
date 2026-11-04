@@ -1,5 +1,8 @@
 package com.happyhour;
 
+import com.happyhour.model.customer.NormalCustomer;
+import com.happyhour.model.game.GameSession;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -15,13 +18,16 @@ public class HappyHourApp extends Application {
         Pane root = new Pane();
         root.setStyle("-fx-background-color: #3b1f5c;");
 
-        Label timeLabel = new Label("Temps : 0 s");
-        timeLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
-        timeLabel.setLayoutX(20);
-        timeLabel.setLayoutY(20);
-        root.getChildren().add(timeLabel);
+        Label infoLabel = new Label();
+        infoLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
+        infoLabel.setLayoutX(20);
+        infoLabel.setLayoutY(20);
+        root.getChildren().add(infoLabel);
 
-        GameLoop gameLoop = new GameLoop(timeLabel);
+        GameSession session = new GameSession();
+        session.placeCustomer(0, new NormalCustomer(null));
+
+        GameLoop gameLoop = new GameLoop(session, infoLabel);
         gameLoop.start();
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
