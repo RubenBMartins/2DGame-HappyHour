@@ -1,0 +1,29 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v6
+
+      - name: Installer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Lancer les tests
+        run: mvn -B test
+
+      - name: Garder le rapport de couverture
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-jacoco
+          path: target/site/jacoco/
