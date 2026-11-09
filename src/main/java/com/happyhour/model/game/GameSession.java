@@ -50,18 +50,30 @@ public class GameSession {
 
     public void serve(int seat) {
         Customer customer = seats[seat];
-        if (customer == null || !customer.canBeServed()) {
+        if (over || customer == null || !customer.canBeServed()) {
             return;
         }
+
+        if (customer.isChild()) {
+            policeRaid();
+            return;
+        }
+
         Drink order = customer.getOrder();
         int grade = order.grade(preparation);
+        preparation = new Preparation();
+
+        if (!customer.accepts(grade)) {
+            loseCustomer(seat);
+            return;
+        }
+
         double speedBonus = 0;
         if (customer.isServedQuickly()) {
             speedBonus = SPEED_BONUS;
         }
         tips = tips + customer.computeTip(order.getBaseTip(grade), speedBonus);
         customer.serve();
-        preparation = new Preparation();
         for (GameListener listener : listeners) {
             listener.onScoreChanged(tips);
         }
@@ -69,11 +81,15 @@ public class GameSession {
 
     public void kick(int seat) {
         Customer customer = seats[seat];
-        if (customer == null) {
+        if (over || customer == null) {
             return;
         }
         customer.kick();
-        loseCustomer(seat);
+        if (customer.isChild()) {
+            freeSeat(seat);
+        } else {
+            loseCustomer(seat);
+        }
     }
 
     public void update(double deltaTime) {
@@ -101,6 +117,19 @@ public class GameSession {
             if (seat != -1) {
                 placeCustomer(seat, factory.createCustomer(null));
             }
+        }
+    }
+
+    private void policeRaid() {
+        for (int i = 0; i < SEATS; i++) {
+            if (seats[i] != null) {
+                freeSeat(i);
+            }
+        }
+        over = true;
+        for (GameListener listener : listeners) {
+            listener.onPoliceRaid();
+            listener.onEveningOver(true);
         }
     }
 
