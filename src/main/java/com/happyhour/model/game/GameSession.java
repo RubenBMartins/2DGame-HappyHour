@@ -2,6 +2,7 @@ package com.happyhour.model.game;
 
 import java.util.ArrayList;
 
+import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.customer.CustomerFactory;
 import com.happyhour.model.drink.Drink;
@@ -9,21 +10,14 @@ import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
 import com.happyhour.model.drink.Preparation;
 import com.happyhour.model.drink.Technique;
+import com.happyhour.model.score.CashRegister;
 
 public class GameSession {
-    public static final int SEATS = 6;
-    public static final int MAX_LOST = 10;
-    public static final double SPEED_BONUS = 1;
-    public static final double HAPPY_HOUR_START = 60;
-    public static final double RUSH_START = 180;
-    public static final double EVENING_END = 300;
-    public static final double RUSH_PATIENCE_SPEED = 1.25;
-
-    private Customer[] seats = new Customer[SEATS];
+    private Customer[] seats = new Customer[GameConfig.SEATS];
     private Preparation preparation = new Preparation();
     private ArrayList<GameListener> listeners = new ArrayList<>();
     private CustomerFactory factory = new CustomerFactory();
-    private double tips = 0;
+    private CashRegister register = new CashRegister();
     private int lostCustomers = 0;
     private double elapsed = 0;
     private Phase phase = Phase.OPENING;
@@ -77,12 +71,13 @@ public class GameSession {
 
         double speedBonus = 0;
         if (customer.isServedQuickly()) {
-            speedBonus = SPEED_BONUS;
+            speedBonus = GameConfig.SPEED_BONUS;
         }
-        tips = tips + customer.computeTip(order.getBaseTip(grade), speedBonus);
+        double tip = customer.computeTip(order.getBaseTip(grade), speedBonus);
+        register.recordSale(order, tip);
         customer.serve();
         for (GameListener listener : listeners) {
-            listener.onScoreChanged(tips);
+            listener.onScoreChanged(register.getTotal());
         }
     }
 
@@ -113,15 +108,15 @@ public class GameSession {
             }
         }
 
-        if (!closed && elapsed >= EVENING_END) {
+        if (!closed && elapsed >= GameConfig.EVENING_END) {
             closeBar();
         }
 
-        for (int i = 0; i < SEATS; i++) {
+        for (int i = 0; i < GameConfig.SEATS; i++) {
             Customer customer = seats[i];
             if (customer != null) {
                 if (phase == Phase.RUSH) {
-                    customer.setPatienceSpeed(RUSH_PATIENCE_SPEED);
+                    customer.setPatienceSpeed(GameConfig.RUSH_PATIENCE_SPEED);
                 }
                 customer.update(deltaTime);
                 if (customer.hasLeft()) {
@@ -146,15 +141,15 @@ public class GameSession {
             spawnTimer = 0;
             int seat = findFreeSeat();
             if (seat != -1) {
-                placeCustomer(seat, factory.createCustomer(null));
+                placeCustomer(seat, factory.createCustomer(null, elapsed, phase != Phase.OPENING));
             }
         }
     }
 
     public Phase getPhase() {
-        if (elapsed < HAPPY_HOUR_START) {
+        if (elapsed < GameConfig.HAPPY_HOUR_START) {
             return Phase.OPENING;
-        } else if (elapsed < RUSH_START) {
+        } else if (elapsed < GameConfig.RUSH_START) {
             return Phase.HAPPY_HOUR;
         }
         return Phase.RUSH;
@@ -162,16 +157,16 @@ public class GameSession {
 
     private double getSpawnDelay() {
         if (phase == Phase.OPENING) {
-            return 12;
+            return GameConfig.OPENING_SPAWN_DELAY;
         } else if (phase == Phase.HAPPY_HOUR) {
-            return 8;
+            return GameConfig.HAPPY_HOUR_SPAWN_DELAY;
         }
-        return 5;
+        return GameConfig.RUSH_SPAWN_DELAY;
     }
 
     private void closeBar() {
         closed = true;
-        for (int i = 0; i < SEATS; i++) {
+        for (int i = 0; i < GameConfig.SEATS; i++) {
             if (seats[i] != null && seats[i].canBeServed()) {
                 freeSeat(i);
             }
@@ -179,7 +174,7 @@ public class GameSession {
     }
 
     private boolean isBarEmpty() {
-        for (int i = 0; i < SEATS; i++) {
+        for (int i = 0; i < GameConfig.SEATS; i++) {
             if (seats[i] != null) {
                 return false;
             }
@@ -196,7 +191,7 @@ public class GameSession {
     }
 
     private void policeRaid() {
-        for (int i = 0; i < SEATS; i++) {
+        for (int i = 0; i < GameConfig.SEATS; i++) {
             if (seats[i] != null) {
                 freeSeat(i);
             }
@@ -210,7 +205,7 @@ public class GameSession {
     private void loseCustomer(int seat) {
         lostCustomers = lostCustomers + 1;
         freeSeat(seat);
-        if (lostCustomers >= MAX_LOST) {
+        if (lostCustomers >= GameConfig.MAX_LOST) {
             endEvening(true);
         }
     }
@@ -223,7 +218,7 @@ public class GameSession {
     }
 
     private int findFreeSeat() {
-        for (int i = 0; i < SEATS; i++) {
+        for (int i = 0; i < GameConfig.SEATS; i++) {
             if (seats[i] == null) {
                 return i;
             }
@@ -239,8 +234,12 @@ public class GameSession {
         return preparation;
     }
 
+    public CashRegister getRegister() {
+        return register;
+    }
+
     public double getTips() {
-        return tips;
+        return register.getTips();
     }
 
     public int getLostCustomers() {

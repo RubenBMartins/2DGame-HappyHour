@@ -12,6 +12,11 @@ public class FakeDrink extends Drink {
         this.fixedGrade = fixedGrade;
     }
 
+    public FakeDrink(String name, int fixedGrade) {
+        super(name, 10, Glass.HIGHBALL);
+        this.fixedGrade = fixedGrade;
+    }
+
     @Override
     public int grade(Preparation preparation) {
         return fixedGrade;

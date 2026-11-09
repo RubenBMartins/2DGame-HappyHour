@@ -1,11 +1,12 @@
 package com.happyhour.model.customer;
 
+import com.happyhour.model.GameConfig;
 import com.happyhour.model.drink.Drink;
 
 public class RushedCustomer extends Customer {
 
     public RushedCustomer(Drink order) {
-        super(order, 20);
+        super(order, GameConfig.SHORT_PATIENCE);
     }
 
     @Override

@@ -1,11 +1,12 @@
 package com.happyhour.model.customer;
 
+import com.happyhour.model.GameConfig;
 import com.happyhour.model.drink.Drink;
 
 public class PickyCustomer extends Customer {
 
     public PickyCustomer(Drink order) {
-        super(order, 35);
+        super(order, GameConfig.NORMAL_PATIENCE);
     }
 
     @Override
@@ -15,6 +16,6 @@ public class PickyCustomer extends Customer {
 
     @Override
     public boolean accepts(int grade) {
-        return grade >= 8;
+        return grade >= GameConfig.PICKY_MIN_GRADE;
     }
 }

@@ -1,11 +1,12 @@
 package com.happyhour.model.customer;
 
+import com.happyhour.model.GameConfig;
 import com.happyhour.model.drink.Drink;
 
 public class GenerousCustomer extends Customer {
 
     public GenerousCustomer(Drink order) {
-        super(order, 50);
+        super(order, GameConfig.LONG_PATIENCE);
     }
 
     @Override
@@ -15,6 +16,6 @@ public class GenerousCustomer extends Customer {
 
     @Override
     public double getDrinkingDuration() {
-        return 6;
+        return GameConfig.GENEROUS_DRINKING_TIME;
     }
 }
