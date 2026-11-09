@@ -3,6 +3,7 @@ package com.happyhour.model.game;
 import java.util.ArrayList;
 
 import com.happyhour.model.GameConfig;
+import com.happyhour.model.customer.ChildCustomer;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.customer.CustomerFactory;
 import com.happyhour.model.drink.Drink;
@@ -23,6 +24,7 @@ public class GameSession {
     private Phase phase = Phase.OPENING;
     private double spawnTimer = 0;
     private boolean closed = false;
+    private boolean paused = false;
     private boolean over = false;
     private boolean defeat = false;
 
@@ -51,7 +53,7 @@ public class GameSession {
 
     public void serve(int seat) {
         Customer customer = seats[seat];
-        if (over || closed || customer == null || !customer.canBeServed()) {
+        if (over || closed || paused || customer == null || !customer.canBeServed()) {
             return;
         }
 
@@ -83,7 +85,7 @@ public class GameSession {
 
     public void kick(int seat) {
         Customer customer = seats[seat];
-        if (over || customer == null) {
+        if (over || paused || customer == null) {
             return;
         }
         customer.kick();
@@ -94,8 +96,31 @@ public class GameSession {
         }
     }
 
+    public void togglePause() {
+        if (!over) {
+            paused = !paused;
+        }
+    }
+
+    public void spawnChild() {
+        int seat = findFreeSeat();
+        if (!over && !closed && seat != -1) {
+            placeCustomer(seat, new ChildCustomer(null));
+        }
+    }
+
+    public void skipPhase() {
+        if (phase == Phase.OPENING) {
+            elapsed = GameConfig.HAPPY_HOUR_START;
+        } else if (phase == Phase.HAPPY_HOUR) {
+            elapsed = GameConfig.RUSH_START;
+        } else {
+            elapsed = GameConfig.EVENING_END;
+        }
+    }
+
     public void update(double deltaTime) {
-        if (over) {
+        if (over || paused) {
             return;
         }
 
@@ -252,6 +277,10 @@ public class GameSession {
 
     public boolean isClosed() {
         return closed;
+    }
+
+    public boolean isPaused() {
+        return paused;
     }
 
     public boolean isOver() {
