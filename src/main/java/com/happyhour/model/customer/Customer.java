@@ -6,6 +6,7 @@ public abstract class Customer {
     private Drink order;
     private double patience;
     private double maxPatience;
+    private double patienceSpeed = 1;
     private CustomerState state = new WaitingState();
 
     public Customer(Drink order, double patience) {
@@ -53,7 +54,11 @@ public abstract class Customer {
     }
 
     public void reducePatience(double amount) {
-        patience = patience - amount;
+        patience = patience - amount * patienceSpeed;
+    }
+
+    public void setPatienceSpeed(double patienceSpeed) {
+        this.patienceSpeed = patienceSpeed;
     }
 
     public void setState(CustomerState state) {

@@ -12,4 +12,6 @@ public interface GameListener {
     void onPoliceRaid();
 
     void onEveningOver(boolean defeat);
+
+    void onPhaseChanged(Phase phase);
 }
