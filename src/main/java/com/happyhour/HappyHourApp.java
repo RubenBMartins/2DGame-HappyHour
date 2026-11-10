@@ -5,6 +5,7 @@ import com.happyhour.model.game.GameSession;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
@@ -29,6 +30,16 @@ public class HappyHourApp extends Application {
         gameLoop.start();
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.SPACE) {
+                session.togglePause();
+            } else if (event.getCode() == KeyCode.E) {
+                session.spawnChild();
+            } else if (event.getCode() == KeyCode.N) {
+                session.skipPhase();
+            }
+        });
+
         stage.setTitle("Happy Hour");
         stage.setScene(scene);
         stage.setResizable(false);

@@ -74,6 +74,10 @@ public abstract class Customer {
         return order;
     }
 
+    public void setOrder(Drink order) {
+        this.order = order;
+    }
+
     public double getPatience() {
         return patience;
     }

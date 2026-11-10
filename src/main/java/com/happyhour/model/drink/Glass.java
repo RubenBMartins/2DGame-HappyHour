@@ -2,7 +2,7 @@ package com.happyhour.model.drink;
 
 public enum Glass {
     HIGHBALL,
-    COUPETTE,
+    MARTINI,
     PINT,
     WINE_GLASS
 }

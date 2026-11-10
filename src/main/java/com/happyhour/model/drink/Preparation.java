@@ -6,8 +6,12 @@ public class Preparation {
     private Glass glass;
     private ArrayList<Ingredient> ingredients = new ArrayList<>();
     private Technique technique = Technique.NONE;
+    private boolean glassFirst = false;
 
     public void chooseGlass(Glass glass) {
+        if (this.glass == null && ingredients.isEmpty()) {
+            glassFirst = true;
+        }
         this.glass = glass;
     }
 
@@ -29,6 +33,10 @@ public class Preparation {
 
     public Technique getTechnique() {
         return technique;
+    }
+
+    public boolean isGlassFirst() {
+        return glassFirst;
     }
 
     public boolean isEmpty() {

@@ -11,7 +11,7 @@ public class CustomerFactoryTest {
     @Test
     void factoryCreatesAWaitingCustomer() {
         CustomerFactory factory = new CustomerFactory();
-        Customer customer = factory.createCustomer(null, 0, true);
+        Customer customer = factory.createCustomer(0, true);
         assertNotNull(customer);
         assertTrue(customer.canBeServed());
     }
@@ -30,7 +30,7 @@ public class CustomerFactoryTest {
     void noChildDuringOpening() {
         CustomerFactory factory = new CustomerFactory();
         for (int i = 0; i < 500; i++) {
-            Customer customer = factory.createCustomer(null, 0, false);
+            Customer customer = factory.createCustomer(0, false);
             assertFalse(customer.isChild());
         }
     }
@@ -38,8 +38,8 @@ public class CustomerFactoryTest {
     @Test
     void pickyThenRushedAreForcedAtHalfPastTwo() {
         CustomerFactory factory = new CustomerFactory();
-        Customer first = factory.createCustomer(null, 150, true);
-        Customer second = factory.createCustomer(null, 150, true);
+        Customer first = factory.createCustomer(150, true);
+        Customer second = factory.createCustomer(150, true);
         assertTrue(first instanceof PickyCustomer);
         assertTrue(second instanceof RushedCustomer);
     }

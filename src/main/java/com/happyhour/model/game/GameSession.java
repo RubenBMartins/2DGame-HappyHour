@@ -3,12 +3,16 @@ package com.happyhour.model.game;
 import java.util.ArrayList;
 
 import com.happyhour.model.GameConfig;
+import com.happyhour.model.customer.ChildCustomer;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.customer.CustomerFactory;
+import com.happyhour.model.customer.PickyCustomer;
 import com.happyhour.model.drink.Drink;
+import com.happyhour.model.drink.DrinkCategory;
 import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
 import com.happyhour.model.drink.Preparation;
+import com.happyhour.model.drink.RecipeBook;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.score.CashRegister;
 
@@ -17,12 +21,15 @@ public class GameSession {
     private Preparation preparation = new Preparation();
     private ArrayList<GameListener> listeners = new ArrayList<>();
     private CustomerFactory factory = new CustomerFactory();
+    private OrderGenerator orders = new OrderGenerator();
+    private RecipeBook recipeBook = new RecipeBook();
     private CashRegister register = new CashRegister();
     private int lostCustomers = 0;
     private double elapsed = 0;
     private Phase phase = Phase.OPENING;
     private double spawnTimer = 0;
     private boolean closed = false;
+    private boolean paused = false;
     private boolean over = false;
     private boolean defeat = false;
 
@@ -51,7 +58,7 @@ public class GameSession {
 
     public void serve(int seat) {
         Customer customer = seats[seat];
-        if (over || closed || customer == null || !customer.canBeServed()) {
+        if (over || closed || paused || customer == null || !customer.canBeServed()) {
             return;
         }
 
@@ -83,7 +90,7 @@ public class GameSession {
 
     public void kick(int seat) {
         Customer customer = seats[seat];
-        if (over || customer == null) {
+        if (over || paused || customer == null) {
             return;
         }
         customer.kick();
@@ -94,8 +101,33 @@ public class GameSession {
         }
     }
 
+    public void togglePause() {
+        if (!over) {
+            paused = !paused;
+        }
+    }
+
+    public void spawnChild() {
+        int seat = findFreeSeat();
+        if (!over && !closed && seat != -1) {
+            Customer child = new ChildCustomer(null);
+            giveOrder(child);
+            placeCustomer(seat, child);
+        }
+    }
+
+    public void skipPhase() {
+        if (phase == Phase.OPENING) {
+            elapsed = GameConfig.HAPPY_HOUR_START;
+        } else if (phase == Phase.HAPPY_HOUR) {
+            elapsed = GameConfig.RUSH_START;
+        } else {
+            elapsed = GameConfig.EVENING_END;
+        }
+    }
+
     public void update(double deltaTime) {
-        if (over) {
+        if (over || paused) {
             return;
         }
 
@@ -141,9 +173,17 @@ public class GameSession {
             spawnTimer = 0;
             int seat = findFreeSeat();
             if (seat != -1) {
-                placeCustomer(seat, factory.createCustomer(null, elapsed, phase != Phase.OPENING));
+                Customer customer = factory.createCustomer(elapsed, phase != Phase.OPENING);
+                giveOrder(customer);
+                placeCustomer(seat, customer);
             }
         }
+    }
+
+    private void giveOrder(Customer customer) {
+        boolean picky = customer instanceof PickyCustomer;
+        DrinkCategory category = orders.pickCategory(phase, picky);
+        customer.setOrder(recipeBook.randomDrink(category));
     }
 
     public Phase getPhase() {
@@ -234,6 +274,10 @@ public class GameSession {
         return preparation;
     }
 
+    public RecipeBook getRecipeBook() {
+        return recipeBook;
+    }
+
     public CashRegister getRegister() {
         return register;
     }
@@ -252,6 +296,10 @@ public class GameSession {
 
     public boolean isClosed() {
         return closed;
+    }
+
+    public boolean isPaused() {
+        return paused;
     }
 
     public boolean isOver() {
