@@ -1,5 +1,6 @@
 package com.happyhour;
 
+import com.happyhour.model.GameConfig;
 import com.happyhour.model.game.GameSession;
 
 import javafx.animation.AnimationTimer;

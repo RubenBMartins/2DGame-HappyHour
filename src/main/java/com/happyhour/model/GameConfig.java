@@ -28,4 +28,8 @@ public class GameConfig {
     public static final int RUSHED_RATE = 15;
     public static final int PICKY_RATE = 10;
     public static final int GENEROUS_RATE = 10;
+
+    public static final int[] OPENING_ORDERS = {50, 50, 0, 0};
+    public static final int[] HAPPY_HOUR_ORDERS = {25, 25, 30, 20};
+    public static final int[] RUSH_ORDERS = {15, 15, 35, 35};
 }
