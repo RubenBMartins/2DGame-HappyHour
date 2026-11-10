@@ -9,10 +9,12 @@ public class GameLoop extends AnimationTimer {
     private long lastTime = 0;
     private GameSession session;
     private Label infoLabel;
+    private GameScreen curscreen;
 
-    public GameLoop(GameSession session, Label infoLabel) {
+    public GameLoop(GameSession session, Label infoLabel, GameScreen gameScreen) {
         this.session = session;
         this.infoLabel = infoLabel;
+        this.curscreen = gameScreen;
     }
 
     @Override
@@ -25,6 +27,7 @@ public class GameLoop extends AnimationTimer {
         lastTime = now;
 
         session.update(deltaTime);
+        curscreen.render();
         int seconds = (int) session.getElapsed();
         infoLabel.setText("Heure : " + seconds / 60 + ":" + seconds % 60 + "   |   " + session.getPhase()
                 + "   |   Pourboires : " + session.getTips() + " €   |   Clients perdus : " + session.getLostCustomers());    }

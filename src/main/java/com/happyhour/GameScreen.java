@@ -6,9 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import javafx.application.Application;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 
@@ -21,9 +19,9 @@ public class GameScreen extends Canvas{
     private GraphicsContext batch;
     public GameScreen() {
         super(WIDTH, HEIGHT); /* Before anything else in the constructor, because otherwise it just doesn't work */
-        table = new Image("table.png");
-        seats = new Image("seats.png");
-        bg = new Image("bg.png");
+        table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH, HEIGHT, true, false);
+        seats = new Image(getClass().getResourceAsStream("/images/seats.png"),960, 160, true, false);
+        bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, 400, true, false);
         batch = getGraphicsContext2D();
     }
     public void start(Stage stage) {
@@ -39,7 +37,7 @@ public class GameScreen extends Canvas{
 
         GameSession session = new GameSession();
 
-        GameLoop gameLoop = new GameLoop(session, infoLabel);
+        GameLoop gameLoop = new GameLoop(session, infoLabel, this);
         gameLoop.start();
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
@@ -50,5 +48,7 @@ public class GameScreen extends Canvas{
     }
     public void render() {
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
+        batch.drawImage(seats, 160, 220, 960, 160);
+        batch.drawImage(table, 0, 320, WIDTH, 400);
     }
 }
