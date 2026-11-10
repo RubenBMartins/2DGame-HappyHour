@@ -60,7 +60,7 @@ public class GameScreen extends Canvas{
         double hand1X = melvin.getX() - 192;
         double hand1Y = melvin.getY();
         double dx = melvin.getX()-640;
-        double dy = melvin.getY()-720;
+        double dy = melvin.getY()-920;
         double angle = (Math.atan2(dy, dx)) * (180 / Math.PI);
         double hand2X = melvin.getX() + 192;
         double hand2Y = melvin.getY();
