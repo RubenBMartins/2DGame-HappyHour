@@ -19,7 +19,6 @@ public class GameScreen extends Canvas{
     private GraphicsContext batch;
     private Player melvin;
     private Image arm;
-    private Image arm2;
     public GameScreen() {
         super(WIDTH, HEIGHT); /* Before anything else in the constructor, because otherwise it just doesn't work */
         table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH, HEIGHT, true, false);
@@ -28,7 +27,6 @@ public class GameScreen extends Canvas{
         batch = getGraphicsContext2D();
         melvin = new Player();
         arm = melvin.getArm();
-        arm2 = melvin.getArm();
     }
     public void start(Stage stage) {
         Pane root = new Pane();

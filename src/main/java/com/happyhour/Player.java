@@ -3,7 +3,6 @@ import javafx.scene.image.Image;
 
 public class Player {
     private Image arm;
-    private float angle;
     final double playerX;
     final double playerY;
     private double mouseX;
