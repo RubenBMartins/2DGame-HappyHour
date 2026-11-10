@@ -5,10 +5,10 @@ import com.happyhour.model.game.GameSession;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 
 public class GameScreen extends Canvas{
     public static final int WIDTH = 1280;
@@ -17,10 +17,9 @@ public class GameScreen extends Canvas{
     private Image seats;
     private Image bg;
     private GraphicsContext batch;
-    private double mouseX;
-    private double mouseY;
     private Player melvin;
     private Image arm;
+    private Image arm2;
     public GameScreen() {
         super(WIDTH, HEIGHT); /* Before anything else in the constructor, because otherwise it just doesn't work */
         table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH, HEIGHT, true, false);
@@ -29,6 +28,7 @@ public class GameScreen extends Canvas{
         batch = getGraphicsContext2D();
         melvin = new Player();
         arm = melvin.getArm();
+        arm2 = melvin.getArm();
     }
     public void start(Stage stage) {
         Pane root = new Pane();
@@ -61,9 +61,20 @@ public class GameScreen extends Canvas{
         batch.drawImage(table, 0, 320, WIDTH, 400);
         double hand1X = melvin.getX() - 192;
         double hand1Y = melvin.getY();
+        double dx = melvin.getX()-640;
+        double dy = melvin.getY()-720;
+        double angle = (Math.atan2(dy, dx)) * (180 / Math.PI);
+        double hand2X = melvin.getX() + 192;
+        double hand2Y = melvin.getY();
         batch.save();
         batch.translate(hand1X, hand1Y);
-        batch.drawImage(arm, -140, -160, 320, 2560);
+        batch.rotate(angle);
+        batch.drawImage(arm, -2390, -170, 2560, 320);
+        batch.restore();
+        batch.save();
+        batch.translate(hand2X, hand2Y);
+        batch.rotate(angle);
+        batch.drawImage(arm, -2390, 170, 2560, -320);
         batch.restore();
     }
 }

@@ -9,7 +9,7 @@ public class Player {
     private double mouseX;
     private double mouseY;
     public Player() {
-        arm = new Image(getClass().getResourceAsStream("/images/arm.png"),320, 2560, true, false);
+        arm = new Image(getClass().getResourceAsStream("/images/arm.png"),2560, 320, true, false);
         mouseX = 0;
         mouseY = 0;
         playerX = 640;
