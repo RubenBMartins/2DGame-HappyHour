@@ -6,10 +6,13 @@ import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.ChildCustomer;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.customer.CustomerFactory;
+import com.happyhour.model.customer.PickyCustomer;
 import com.happyhour.model.drink.Drink;
+import com.happyhour.model.drink.DrinkCategory;
 import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
 import com.happyhour.model.drink.Preparation;
+import com.happyhour.model.drink.RecipeBook;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.score.CashRegister;
 
@@ -18,6 +21,8 @@ public class GameSession {
     private Preparation preparation = new Preparation();
     private ArrayList<GameListener> listeners = new ArrayList<>();
     private CustomerFactory factory = new CustomerFactory();
+    private OrderGenerator orders = new OrderGenerator();
+    private RecipeBook recipeBook = new RecipeBook();
     private CashRegister register = new CashRegister();
     private int lostCustomers = 0;
     private double elapsed = 0;
@@ -105,7 +110,9 @@ public class GameSession {
     public void spawnChild() {
         int seat = findFreeSeat();
         if (!over && !closed && seat != -1) {
-            placeCustomer(seat, new ChildCustomer(null));
+            Customer child = new ChildCustomer(null);
+            giveOrder(child);
+            placeCustomer(seat, child);
         }
     }
 
@@ -166,9 +173,17 @@ public class GameSession {
             spawnTimer = 0;
             int seat = findFreeSeat();
             if (seat != -1) {
-                placeCustomer(seat, factory.createCustomer(null, elapsed, phase != Phase.OPENING));
+                Customer customer = factory.createCustomer(elapsed, phase != Phase.OPENING);
+                giveOrder(customer);
+                placeCustomer(seat, customer);
             }
         }
+    }
+
+    private void giveOrder(Customer customer) {
+        boolean picky = customer instanceof PickyCustomer;
+        DrinkCategory category = orders.pickCategory(phase, picky);
+        customer.setOrder(recipeBook.randomDrink(category));
     }
 
     public Phase getPhase() {
@@ -257,6 +272,10 @@ public class GameSession {
 
     public Preparation getPreparation() {
         return preparation;
+    }
+
+    public RecipeBook getRecipeBook() {
+        return recipeBook;
     }
 
     public CashRegister getRegister() {

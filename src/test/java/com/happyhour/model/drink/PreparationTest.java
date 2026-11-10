@@ -32,11 +32,11 @@ class PreparationTest {
     @Test
     void glassAndTechniqueAreRemembered() {
         Preparation preparation = new Preparation();
-        preparation.chooseGlass(Glass.COUPETTE);
+        preparation.chooseGlass(Glass.MARTINI);
         preparation.useTechnique(Technique.SHAKE);
 
         assertFalse(preparation.isEmpty());
-        assertEquals(Glass.COUPETTE, preparation.getGlass());
+        assertEquals(Glass.MARTINI, preparation.getGlass());
         assertEquals(Technique.SHAKE, preparation.getTechnique());
     }
 }
