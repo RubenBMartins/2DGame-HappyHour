@@ -55,7 +55,7 @@ public class GameScreen extends Canvas{
     }
     public void render() {
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
-        batch.drawImage(seats, 160, 220, 960, 160);
+        batch.drawImage(seats, 160, 260, 960, 160);
         batch.drawImage(table, 0, 320, WIDTH, 400);
         double hand1X = melvin.getX() - 192;
         double hand1Y = melvin.getY();
