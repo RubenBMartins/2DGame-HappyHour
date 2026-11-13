@@ -27,9 +27,9 @@ public class GameScreen extends Canvas{
 
     public GameScreen() {
         super(WIDTH, HEIGHT);
-        table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH, HEIGHT, true, false);
+        table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,400,true, false);
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),960, 160, true, false);
-        bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, 400, true, false);
+        bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
         batch = getGraphicsContext2D();
         handsCanvas = new Canvas(WIDTH, HEIGHT);
         handsBatch = handsCanvas.getGraphicsContext2D();
