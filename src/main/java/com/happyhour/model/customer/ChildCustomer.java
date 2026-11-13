@@ -5,11 +5,9 @@ import com.happyhour.model.drink.Drink;
 import javafx.scene.image.Image;
 
 public class ChildCustomer extends Customer {
-
     public ChildCustomer(Drink order) {
         super(order, GameConfig.NORMAL_PATIENCE);
     }
-
     @Override
     public double computeTip(double baseTip, double speedBonus) {
         return 0;
