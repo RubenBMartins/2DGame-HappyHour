@@ -9,6 +9,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -100,10 +101,39 @@ public class GameScreen extends Canvas{
         root.setOnMouseDragged(event -> {
             melvin.updateMouse(event.getX(), event.getY());
         });
-        
-        root.setOnMouseClicked(event -> {
+
+        seat1box.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY)
-                GameSession.kick();
+                session.kick(0);
+        });
+        seat2box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(1);
+        });
+        seat3box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(2);
+        });
+        seat4box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(3);
+        });
+        seat5box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(4);
+        });
+        seat6box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(5);
+        });
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.SPACE) {
+                session.togglePause();
+            } else if (event.getCode() == KeyCode.E) {
+                session.spawnChild();
+            } else if (event.getCode() == KeyCode.N) {
+                session.skipPhase();
+            }
         });
     }
     public void render() {
