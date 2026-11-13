@@ -1,6 +1,7 @@
 
 package com.happyhour;
 
+import com.happyhour.model.customer.Customer;
 import com.happyhour.model.game.GameSession;
 
 import javafx.scene.Scene;
@@ -24,6 +25,7 @@ public class GameScreen extends Canvas{
     private Canvas handsCanvas;
     private Player melvin;
     private Image arm;
+    private GameSession session;
 
     public GameScreen() {
         super(WIDTH, HEIGHT);
@@ -36,8 +38,20 @@ public class GameScreen extends Canvas{
         melvin = new Player();
         arm = melvin.getArm();
         handsCanvas.setMouseTransparent(true);
+        
     }
+    private void renderCustomers() {
+        for (int i = 0; i < 6; i++) {
+            Customer customer = session.getCustomer(i);
 
+            if (customer != null) {
+                double x = 160 + (i * 160);
+                double y = 60;
+
+                batch.drawImage(customer.getSprite(), x, y, 160, 350);
+            }
+        }
+    }
     public void start(Stage stage) {
         Pane root = new Pane();
         root.setStyle("-fx-background-color: #3b1f5c;");
@@ -69,7 +83,7 @@ public class GameScreen extends Canvas{
         root.getChildren().add(handsCanvas);
         root.getChildren().add(infoLabel);
 
-        GameSession session = new GameSession();
+        session = new GameSession();
 
         GameLoop gameLoop = new GameLoop(session, infoLabel, this);
         gameLoop.start();
@@ -87,6 +101,7 @@ public class GameScreen extends Canvas{
     public void render() {
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
         batch.drawImage(seats, 160, 260, 960, 160);
+        renderCustomers();
         batch.drawImage(table, 0, 360, WIDTH, 400);
 
         double hand1X = melvin.getX() - 192;

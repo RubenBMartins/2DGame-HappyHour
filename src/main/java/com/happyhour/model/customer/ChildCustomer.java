@@ -20,6 +20,6 @@ public class ChildCustomer extends Customer {
 
     @Override
     public Image getSprite() {
-        return new Image(getClass().getResourceAsStream("/images/customerChild.png"));
+        return new Image(getClass().getResourceAsStream("/images/customerChild.png"),160,350,true, false);
     }
 }
