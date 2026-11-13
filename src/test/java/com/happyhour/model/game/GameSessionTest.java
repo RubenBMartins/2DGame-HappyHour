@@ -36,4 +36,14 @@ public class GameSessionTest {
         }
         assertTrue(session.isOver());
     }
+
+    @Test
+    void occupiedSeatsAreListed() {
+        GameSession session = new GameSession();
+        session.placeCustomer(0, new NormalCustomer(null));
+        session.placeCustomer(4, new NormalCustomer(null));
+        assertEquals(2, session.getOccupiedSeats().size());
+        assertEquals(0, session.getOccupiedSeats().get(0));
+        assertEquals(4, session.getOccupiedSeats().get(1));
+    }
 }

@@ -270,6 +270,16 @@ public class GameSession {
         return seats[seat];
     }
 
+    public ArrayList<Integer> getOccupiedSeats() {
+        ArrayList<Integer> occupied = new ArrayList<>();
+        for (int seat = 0; seat < GameConfig.SEATS; seat++) {
+            if (seats[seat] != null) {
+                occupied.add(seat);
+            }
+        }
+        return occupied;
+    }
+
     public Preparation getPreparation() {
         return preparation;
     }
