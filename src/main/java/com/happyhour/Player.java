@@ -3,13 +3,12 @@ import javafx.scene.image.Image;
 
 public class Player {
     private Image arm;
-    private float angle;
     final double playerX;
     final double playerY;
     private double mouseX;
     private double mouseY;
     public Player() {
-        arm = new Image(getClass().getResourceAsStream("/images/arm.png"),320, 2560, true, false);
+        arm = new Image(getClass().getResourceAsStream("/images/arm.png"),2560, 320, true, false);
         mouseX = 0;
         mouseY = 0;
         playerX = 640;
