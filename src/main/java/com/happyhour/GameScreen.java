@@ -96,6 +96,9 @@ public class GameScreen extends Canvas{
         root.setOnMouseMoved(event -> {
             melvin.updateMouse(event.getX(), event.getY());
         });
+        root.setOnMouseDragged(event -> {
+            melvin.updateMouse(event.getX(), event.getY());
+        });
     }
 
     public void render() {
