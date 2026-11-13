@@ -66,12 +66,12 @@ public class GameScreen extends Canvas{
         Rectangle seat4box = new Rectangle(640, 70, 160, 290);
         Rectangle seat5box = new Rectangle(800, 70, 160, 290);
         Rectangle seat6box = new Rectangle(960, 70, 160, 290);
-        seat1box.setFill(Color.web("0xFF0000",0.5));
-        seat2box.setFill(Color.web("0xFF9900",0.5));
-        seat3box.setFill(Color.web("0xFFFF00",0.5));
-        seat4box.setFill(Color.web("0x09FF00",0.5));
-        seat5box.setFill(Color.web("0x0051FF",0.5));
-        seat6box.setFill(Color.web("0xAE00FF",0.5));
+        seat1box.setFill(Color.web("0xFF0000",0));
+        seat2box.setFill(Color.web("0xFF9900",0));
+        seat3box.setFill(Color.web("0xFFFF00",0));
+        seat4box.setFill(Color.web("0x09FF00",0));
+        seat5box.setFill(Color.web("0x0051FF",0));
+        seat6box.setFill(Color.web("0xAE00FF",0));
 
         root.getChildren().add(this);
         root.getChildren().add(seat1box);
