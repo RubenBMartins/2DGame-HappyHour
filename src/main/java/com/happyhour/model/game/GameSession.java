@@ -16,7 +16,6 @@ import com.happyhour.model.drink.RecipeBook;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.score.CashRegister;
 import java.util.Random;
-import java.util.ArrayList;
 
 public class GameSession {
     private Customer[] seats = new Customer[GameConfig.SEATS];
