@@ -9,6 +9,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -99,8 +100,12 @@ public class GameScreen extends Canvas{
         root.setOnMouseDragged(event -> {
             melvin.updateMouse(event.getX(), event.getY());
         });
+        
+        root.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                GameSession.kick();
+        });
     }
-
     public void render() {
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
         batch.drawImage(seats, 160, 260, 960, 160);
