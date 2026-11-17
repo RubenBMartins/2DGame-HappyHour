@@ -7,6 +7,8 @@ public class HappyHourApp extends Application {
     private GameScreen curscreen;
     @Override
     public void start(Stage stage) {
+        stage.setResizable(true);
+        stage.setMaximized(true);
         curscreen = new GameScreen();
         curscreen.start(stage);
     }
