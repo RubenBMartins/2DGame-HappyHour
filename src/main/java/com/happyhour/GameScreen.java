@@ -33,8 +33,8 @@ public class GameScreen extends Canvas{
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
         this.app = app;
-        table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,400,true, false);
-        seats = new Image(getClass().getResourceAsStream("/images/seats.png"),960, 160, true, false);
+        table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,540,true, false);
+        seats = new Image(getClass().getResourceAsStream("/images/seats.png"),1360, 120, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
         batch = getGraphicsContext2D();
         handsCanvas = new Canvas(WIDTH, HEIGHT);
@@ -49,8 +49,8 @@ public class GameScreen extends Canvas{
             Customer customer = session.getCustomer(i);
 
             if (customer != null) {
-                double x = 160 + (i * 160);
-                double y = 60;
+                double x = 280 + (i * 240);
+                double y = 390;
 
                 batch.drawImage(customer.getSprite(), x, y, 160, 350);
             }
@@ -83,12 +83,12 @@ public class GameScreen extends Canvas{
         infoLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
         infoLabel.setLayoutX(20);
         infoLabel.setLayoutY(20);
-        Rectangle seat1box = new Rectangle(160, 70, 160, 290);
-        Rectangle seat2box = new Rectangle(320, 70, 160, 290);
-        Rectangle seat3box = new Rectangle(480, 70, 160, 290);
-        Rectangle seat4box = new Rectangle(640, 70, 160, 290);
-        Rectangle seat5box = new Rectangle(800, 70, 160, 290);
-        Rectangle seat6box = new Rectangle(960, 70, 160, 290);
+        Rectangle seat1box = new Rectangle(280, 390, 160, 290);
+        Rectangle seat2box = new Rectangle(520, 390, 160, 290);
+        Rectangle seat3box = new Rectangle(760, 390, 160, 290);
+        Rectangle seat4box = new Rectangle(1000, 390, 160, 290);
+        Rectangle seat5box = new Rectangle(1240, 390, 160, 290);
+        Rectangle seat6box = new Rectangle(1480, 390, 160, 290);
         seat1box.setFill(Color.web("0xFF0000",0));
         seat2box.setFill(Color.web("0xFF9900",0));
         seat3box.setFill(Color.web("0xFFFF00",0));
@@ -169,14 +169,14 @@ public class GameScreen extends Canvas{
 
     public void render() {
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
-        batch.drawImage(seats, 160, 260, 960, 160);
+        batch.drawImage(seats, 280, 590, 1360, 120);
         renderCustomers();
-        batch.drawImage(table, 0, 360, WIDTH, 400);
+        batch.drawImage(table, 0, 540, WIDTH, 540);
 
         double hand1X = melvin.getX() - 192;
         double hand1Y = melvin.getY();
-        double dx = melvin.getX()-640;
-        double dy = melvin.getY()-920;
+        double dx = melvin.getX()-990;
+        double dy = melvin.getY()-1280;
         double angle = (Math.atan2(dy, dx)) * (180 / Math.PI);
         double hand2X = melvin.getX() + 192;
         double hand2Y = melvin.getY();
