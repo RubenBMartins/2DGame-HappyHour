@@ -1,4 +1,3 @@
-
 package com.happyhour;
 
 import com.happyhour.model.customer.Customer;
@@ -29,9 +28,11 @@ public class GameScreen extends Canvas{
     private Player melvin;
     private Image arm;
     private GameSession session;
+    private HappyHourApp app;
 
-    public GameScreen() {
+    public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
+        this.app = app;
         table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,400,true, false);
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),960, 160, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
@@ -161,6 +162,11 @@ public class GameScreen extends Canvas{
             }
         });
     }
+
+    public void endGame(GameSession session) {
+        app.showSummary(session);
+    }
+
     public void render() {
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
         batch.drawImage(seats, 160, 260, 960, 160);
