@@ -18,8 +18,8 @@ import javafx.stage.Stage;
 import javafx.scene.transform.Scale;
 
 public class GameScreen extends Canvas{
-    public static final int WIDTH = 1280;
-    public static final int HEIGHT = 720;
+    public static final int WIDTH = 1980;
+    public static final int HEIGHT = 1080;
     private Image table;
     private Image seats;
     private Image bg;
