@@ -15,6 +15,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.scene.transform.Scale;
 
 public class GameScreen extends Canvas{
     public static final int WIDTH = 1280;
@@ -54,7 +55,26 @@ public class GameScreen extends Canvas{
             }
         }
     }
+    private void resizeGame(Pane gamePane, Pane root) {
+        double scaleX = root.getWidth() / WIDTH;
+        double scaleY = root.getHeight() / HEIGHT;
+
+        double scale = Math.min(scaleX, scaleY);
+
+        double x = (root.getWidth() - WIDTH * scale) / 2;
+        double y = (root.getHeight() - HEIGHT * scale) / 2;
+
+        Scale transformation = new Scale(scale, scale, 0, 0);
+
+        gamePane.getTransforms().setAll(transformation);
+
+        gamePane.setLayoutX(x);
+        gamePane.setLayoutY(y);
+    }
     public void start(Stage stage) {
+        Pane gamePane = new Pane();
+        gamePane.setPrefSize(WIDTH, HEIGHT);
+        gamePane.setMinSize(WIDTH, HEIGHT);
         Pane root = new Pane();
         root.setStyle("-fx-background-color: #3b1f5c;");
 
@@ -75,31 +95,36 @@ public class GameScreen extends Canvas{
         seat5box.setFill(Color.web("0x0051FF",0));
         seat6box.setFill(Color.web("0xAE00FF",0));
 
-        root.getChildren().add(this);
-        root.getChildren().add(seat1box);
-        root.getChildren().add(seat2box);
-        root.getChildren().add(seat3box);
-        root.getChildren().add(seat4box);
-        root.getChildren().add(seat5box);
-        root.getChildren().add(seat6box);
-        root.getChildren().add(handsCanvas);
-        root.getChildren().add(infoLabel);
-
+        gamePane.getChildren().add(this);
+        gamePane.getChildren().add(seat1box);
+        gamePane.getChildren().add(seat2box);
+        gamePane.getChildren().add(seat3box);
+        gamePane.getChildren().add(seat4box);
+        gamePane.getChildren().add(seat5box);
+        gamePane.getChildren().add(seat6box);
+        gamePane.getChildren().add(handsCanvas);
+        gamePane.getChildren().add(infoLabel);
+        root.getChildren().add(gamePane);
+        root.widthProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
+        root.heightProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
         session = new GameSession();
 
         GameLoop gameLoop = new GameLoop(session, infoLabel, this);
         gameLoop.start();
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
+        resizeGame(gamePane, root);
         stage.setTitle("Happy Hour");
         stage.setScene(scene);
-        stage.setResizable(false);
         stage.show();
         root.setOnMouseMoved(event -> {
-            melvin.updateMouse(event.getX(), event.getY());
+            var point = gamePane.sceneToLocal(event.getSceneX(), event.getSceneY());
+            melvin.updateMouse(point.getX(), point.getY());
         });
+
         root.setOnMouseDragged(event -> {
-            melvin.updateMouse(event.getX(), event.getY());
+            var point = gamePane.sceneToLocal(event.getSceneX(), event.getSceneY());
+            melvin.updateMouse(point.getX(), point.getY());
         });
 
         seat1box.setOnMouseClicked(event -> {
