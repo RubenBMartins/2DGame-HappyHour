@@ -1,6 +1,7 @@
 
 package com.happyhour;
 
+import com.happyhour.model.customer.Customer;
 import com.happyhour.model.game.GameSession;
 
 import javafx.scene.Scene;
@@ -8,6 +9,8 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -24,6 +27,7 @@ public class GameScreen extends Canvas{
     private Canvas handsCanvas;
     private Player melvin;
     private Image arm;
+    private GameSession session;
 
     public GameScreen() {
         super(WIDTH, HEIGHT);
@@ -36,8 +40,20 @@ public class GameScreen extends Canvas{
         melvin = new Player();
         arm = melvin.getArm();
         handsCanvas.setMouseTransparent(true);
+        
     }
+    private void renderCustomers() {
+        for (int i = 0; i < 6; i++) {
+            Customer customer = session.getCustomer(i);
 
+            if (customer != null) {
+                double x = 160 + (i * 160);
+                double y = 60;
+
+                batch.drawImage(customer.getSprite(), x, y, 160, 350);
+            }
+        }
+    }
     public void start(Stage stage) {
         Pane root = new Pane();
         root.setStyle("-fx-background-color: #3b1f5c;");
@@ -52,12 +68,12 @@ public class GameScreen extends Canvas{
         Rectangle seat4box = new Rectangle(640, 70, 160, 290);
         Rectangle seat5box = new Rectangle(800, 70, 160, 290);
         Rectangle seat6box = new Rectangle(960, 70, 160, 290);
-        seat1box.setFill(Color.web("0xFF0000",0.5));
-        seat2box.setFill(Color.web("0xFF9900",0.5));
-        seat3box.setFill(Color.web("0xFFFF00",0.5));
-        seat4box.setFill(Color.web("0x09FF00",0.5));
-        seat5box.setFill(Color.web("0x0051FF",0.5));
-        seat6box.setFill(Color.web("0xAE00FF",0.5));
+        seat1box.setFill(Color.web("0xFF0000",0));
+        seat2box.setFill(Color.web("0xFF9900",0));
+        seat3box.setFill(Color.web("0xFFFF00",0));
+        seat4box.setFill(Color.web("0x09FF00",0));
+        seat5box.setFill(Color.web("0x0051FF",0));
+        seat6box.setFill(Color.web("0xAE00FF",0));
 
         root.getChildren().add(this);
         root.getChildren().add(seat1box);
@@ -69,7 +85,7 @@ public class GameScreen extends Canvas{
         root.getChildren().add(handsCanvas);
         root.getChildren().add(infoLabel);
 
-        GameSession session = new GameSession();
+        session = new GameSession();
 
         GameLoop gameLoop = new GameLoop(session, infoLabel, this);
         gameLoop.start();
@@ -82,11 +98,48 @@ public class GameScreen extends Canvas{
         root.setOnMouseMoved(event -> {
             melvin.updateMouse(event.getX(), event.getY());
         });
-    }
+        root.setOnMouseDragged(event -> {
+            melvin.updateMouse(event.getX(), event.getY());
+        });
 
+        seat1box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(0);
+        });
+        seat2box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(1);
+        });
+        seat3box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(2);
+        });
+        seat4box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(3);
+        });
+        seat5box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(4);
+        });
+        seat6box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY)
+                session.kick(5);
+        });
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.SPACE) {
+                session.togglePause();
+            } else if (event.getCode() == KeyCode.E) {
+                session.spawnChild();
+            } else if (event.getCode() == KeyCode.N) {
+                session.skipPhase();
+            }
+        });
+    }
     public void render() {
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
         batch.drawImage(seats, 160, 260, 960, 160);
+        renderCustomers();
         batch.drawImage(table, 0, 360, WIDTH, 400);
 
         double hand1X = melvin.getX() - 192;

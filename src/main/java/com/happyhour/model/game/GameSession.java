@@ -15,6 +15,7 @@ import com.happyhour.model.drink.Preparation;
 import com.happyhour.model.drink.RecipeBook;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.score.CashRegister;
+import java.util.Random;
 
 public class GameSession {
     private Customer[] seats = new Customer[GameConfig.SEATS];
@@ -32,6 +33,8 @@ public class GameSession {
     private boolean paused = false;
     private boolean over = false;
     private boolean defeat = false;
+    private ArrayList<Integer> openSeats = new ArrayList<Integer>();
+    private Random rand = new Random();
 
     public void addListener(GameListener listener) {
         listeners.add(listener);
@@ -258,12 +261,19 @@ public class GameSession {
     }
 
     private int findFreeSeat() {
+        openSeats.clear();
         for (int i = 0; i < GameConfig.SEATS; i++) {
             if (seats[i] == null) {
-                return i;
+                openSeats.add(i);
             }
         }
-        return -1;
+        if (openSeats.size() != 0) {
+            int n = rand.nextInt(openSeats.size());
+            return openSeats.get(n);
+        }
+        else {
+            return -1;
+        }
     }
 
     public Customer getCustomer(int seat) {

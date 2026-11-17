@@ -3,12 +3,16 @@ package com.happyhour.model.customer;
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.drink.Drink;
 
+import javafx.scene.image.Image;
+import com.happyhour.model.customer.Customer;
+
 public abstract class Customer {
     private Drink order;
     private double patience;
     private double maxPatience;
     private double patienceSpeed = 1;
     private CustomerState state = new WaitingState();
+    
 
     public Customer(Drink order, double patience) {
         this.order = order;
@@ -91,4 +95,6 @@ public abstract class Customer {
     }
 
     public abstract double computeTip(double baseTip, double speedBonus);
+
+    public abstract Image getSprite();
 }
