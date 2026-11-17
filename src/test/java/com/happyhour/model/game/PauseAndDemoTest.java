@@ -34,7 +34,9 @@ public class PauseAndDemoTest {
     void demoKeySpawnsAChild() {
         GameSession session = new GameSession();
         session.spawnChild();
-        assertTrue(session.getCustomer(0).isChild());
+        assertEquals(1, session.getOccupiedSeats().size());
+        int seat = session.getOccupiedSeats().get(0);
+        assertTrue(session.getCustomer(seat).isChild());
     }
 
     @Test
