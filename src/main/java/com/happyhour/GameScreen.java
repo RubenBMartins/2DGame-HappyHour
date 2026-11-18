@@ -5,6 +5,8 @@ import com.happyhour.model.customer.Customer;
 import com.happyhour.model.drink.Drink;
 import com.happyhour.model.game.GameSession;
 
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -52,10 +54,13 @@ public class GameScreen extends Canvas{
     private GraphicsContext batch;
     private GraphicsContext drinkBatch;
     private GraphicsContext handsBatch;
+    private GraphicsContext kickBatch;
     private Canvas handsCanvas;
     private Canvas drinksCanvas;
+    private Canvas kickCanvas;
     private Player melvin;
     private Image arm;
+    private Image kick;
     private GameSession session;
     private HappyHourApp app;
     private Stage stage;
@@ -64,6 +69,7 @@ public class GameScreen extends Canvas{
     private Label timeLabel;
     private Label moneyLabel;
     private Label lostLabel;
+    private PauseTransition delay;
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -71,6 +77,7 @@ public class GameScreen extends Canvas{
         table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,540,true, false);
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),1360, 120, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
+        kick = new Image(getClass().getResourceAsStream("/images/kick.png"),200, 200, true, false);
         
         orderBubble = new Image(getClass().getResourceAsStream("/images/orderBubble.png"),180, 260, true, false);
         beerFoam = new Image(getClass().getResourceAsStream("/images/beerFoam.png"),100, 150, true, false);
@@ -95,10 +102,14 @@ public class GameScreen extends Canvas{
         handsBatch = handsCanvas.getGraphicsContext2D();
         drinksCanvas = new Canvas(WIDTH, HEIGHT);
         drinkBatch = drinksCanvas.getGraphicsContext2D();
+        kickCanvas = new Canvas(WIDTH, HEIGHT);
+        kickBatch = kickCanvas.getGraphicsContext2D();
         melvin = new Player();
         arm = melvin.getArm();
         handsCanvas.setMouseTransparent(true);
         drinksCanvas.setMouseTransparent(true);
+        kickCanvas.setMouseTransparent(true);
+        delay = new PauseTransition(Duration.seconds(0.5));
         
     }
     private void renderCustomers() {
@@ -154,6 +165,13 @@ public class GameScreen extends Canvas{
         lostLabel.setText("CLIENTS PERDUS " + session.getLostCustomers() + "/" + GameConfig.MAX_LOST);
     }
 
+    public void kickBoom(double x, double y) {
+        kickBatch.drawImage(kick, x, y, 200, 200);
+        delay.setOnFinished(event -> {
+            kickBatch.clearRect(x, y, 200, 200);
+        });
+        delay.playFromStart();
+    }
     public void start(Stage stage) {
         this.stage = stage;
         Pane gamePane = new Pane();
@@ -191,6 +209,7 @@ public class GameScreen extends Canvas{
         gamePane.getChildren().add(seat5box);
         gamePane.getChildren().add(seat6box);
         gamePane.getChildren().add(drinksCanvas);
+        gamePane.getChildren().add(kickCanvas);
         gamePane.getChildren().add(handsCanvas);
         gamePane.getChildren().add(hud);
         root.getChildren().add(gamePane);
@@ -217,26 +236,32 @@ public class GameScreen extends Canvas{
         seat1box.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY)
                 session.kick(0);
+                kickBoom(310,390);
         });
         seat2box.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY)
                 session.kick(1);
+                kickBoom(510,390);
         });
         seat3box.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY)
                 session.kick(2);
+                kickBoom(750,390);
         });
         seat4box.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY)
                 session.kick(3);
+                kickBoom(990,390);
         });
         seat5box.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY)
                 session.kick(4);
+                kickBoom(1230,390);
         });
         seat6box.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY)
                 session.kick(5);
+                kickBoom(1470,390);
         });
         installKeys(scene);
     }
