@@ -30,6 +30,7 @@ public class GameScreen extends Canvas{
     private Image seats;
     private Image bg;
 
+    private Image orderBubble;
     private Image beerFoam;
     private Image beerGlass;
     private Image beer;
@@ -67,6 +68,7 @@ public class GameScreen extends Canvas{
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),1360, 120, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
         
+        orderBubble = new Image(getClass().getResourceAsStream("/images/orderBubble.png"),180, 260, true, false);
         beerFoam = new Image(getClass().getResourceAsStream("/images/beerFoam.png"),100, 150, true, false);
         beerGlass = new Image(getClass().getResourceAsStream("/images/beerGlass.png"),100, 150, true, false);
         beer = new Image(getClass().getResourceAsStream("/images/beer.png"),100, 150, true, false);
@@ -243,6 +245,7 @@ public class GameScreen extends Canvas{
             if (customer != null) {
                 Drink order = customer.getOrder();
                 if (order != null) {
+                    drinkBatch.drawImage(orderBubble, 310 - 10 + seat*240, 170, 180, 260);
                     switch (order.getGlass()) {
                         case PINT:
                             drinkBatch.drawImage(beer, 310 + 30 + seat*240, 190, 100, 150);
