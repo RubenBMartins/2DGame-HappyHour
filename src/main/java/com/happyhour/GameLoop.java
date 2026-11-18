@@ -27,8 +27,15 @@ public class GameLoop extends AnimationTimer {
         lastTime = now;
 
         session.update(deltaTime);
+        if (session.isOver()) {
+            stop();
+            curscreen.endGame(session);
+            return;
+        }
+
         curscreen.render();
         int seconds = (int) session.getElapsed();
         infoLabel.setText("Heure : " + seconds / 60 + ":" + seconds % 60 + "   |   " + session.getPhase()
-                + "   |   Pourboires : " + session.getTips() + " €   |   Clients perdus : " + session.getLostCustomers());    }
+                + "   |   Pourboires : " + session.getTips() + " €   |   Clients perdus : " + session.getLostCustomers());
+    }
 }

@@ -11,8 +11,8 @@ public class Player {
         arm = new Image(getClass().getResourceAsStream("/images/arm.png"),2560, 320, true, false);
         mouseX = 0;
         mouseY = 0;
-        playerX = 640;
-        playerY = 720;
+        playerX = 990;
+        playerY = 1080;
     }
     public double getX() {
         return mouseX;
