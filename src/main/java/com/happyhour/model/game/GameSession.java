@@ -310,6 +310,14 @@ public class GameSession {
         return seats[seat];
     }
 
+    public Drink getOrder(int seat) {
+        Customer customer = seats[seat];
+        if (customer == null || !customer.canBeServed()) {
+            return null;
+        }
+        return customer.getOrder();
+    }
+
     public ArrayList<Integer> getOccupiedSeats() {
         ArrayList<Integer> occupied = new ArrayList<>();
         for (int seat = 0; seat < GameConfig.SEATS; seat++) {
