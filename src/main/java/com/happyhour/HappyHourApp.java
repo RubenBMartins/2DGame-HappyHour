@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 public class HappyHourApp extends Application {
     private Stage stage;
     private ScoreBoard scoreBoard = new ScoreBoard("scores.txt");
+    private MusicPlayer music;
 
     @Override
     public void start(Stage stage) {
@@ -16,8 +17,17 @@ public class HappyHourApp extends Application {
         stage.setTitle("Happy Hour");
         stage.setResizable(true);
         stage.setMaximized(true);
+
+        music = new MusicPlayer("/sounds/music.mp3");
+        music.play();
+
         showMenu();
         stage.show();
+    }
+
+    @Override
+    public void stop() {
+        music.stop();
     }
 
     public void showMenu() {
@@ -38,6 +48,10 @@ public class HappyHourApp extends Application {
 
     public void showScores() {
         new ScoreScreen(this, scoreBoard).start(stage);
+    }
+
+    public MusicPlayer getMusic() {
+        return music;
     }
 
     public static void main(String[] args) {
