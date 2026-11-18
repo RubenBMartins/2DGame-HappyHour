@@ -21,7 +21,6 @@ import javafx.scene.transform.Scale;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
-import javafx.scene.paint.Color;
 
 public class GameScreen extends Canvas{
     public static final int WIDTH = 1980;
