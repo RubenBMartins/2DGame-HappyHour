@@ -1,8 +1,14 @@
 package com.happyhour;
 
+import java.util.ArrayList;
+
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.drink.Drink;
+import com.happyhour.model.drink.Glass;
+import com.happyhour.model.drink.Ingredient;
+import com.happyhour.model.drink.Preparation;
+import com.happyhour.model.drink.Technique;
 import com.happyhour.model.game.GameSession;
 
 import javafx.application.Platform;
@@ -64,6 +70,7 @@ public class GameScreen extends Canvas{
     private Label timeLabel;
     private Label moneyLabel;
     private Label lostLabel;
+    private Label prepLabel;
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -152,6 +159,24 @@ public class GameScreen extends Canvas{
         timeLabel.setText("TEMPS " + String.format("%d:%02d", minutes, seconds));
         moneyLabel.setText("CAISSE " + String.format("%.0f €", session.getRegister().getTotal()));
         lostLabel.setText("CLIENTS PERDUS " + session.getLostCustomers() + "/" + GameConfig.MAX_LOST);
+
+        Preparation preparation = session.getPreparation();
+        ArrayList<String> parts = new ArrayList<>();
+        if (preparation.getGlass() != null) {
+            parts.add(preparation.getGlass().toString());
+        }
+        for (Ingredient ingredient : preparation.getIngredients()) {
+            parts.add(ingredient.toString());
+        }
+        if (preparation.getTechnique() != Technique.NONE) {
+            parts.add(preparation.getTechnique().toString());
+        }
+
+        if (parts.isEmpty()) {
+            prepLabel.setText("EN MAIN : RIEN");
+        } else {
+            prepLabel.setText("EN MAIN : " + String.join(" + ", parts));
+        }
     }
 
     public void start(Stage stage) {
@@ -169,6 +194,11 @@ public class GameScreen extends Canvas{
         HBox hud = new HBox(timeLabel, moneyLabel, lostLabel);
         hud.setPrefWidth(WIDTH);
         hud.setStyle("-fx-background-color: rgba(0, 0, 0, 0.35); -fx-padding: 12 30 12 30;");
+
+        prepLabel = createHudLabel(Pos.CENTER);
+        prepLabel.setPrefWidth(WIDTH);
+        prepLabel.setLayoutY(70);
+        prepLabel.setMouseTransparent(true);
 
         Rectangle seat1box = new Rectangle(310, 390, 160, 290);
         Rectangle seat2box = new Rectangle(550, 390, 160, 290);
@@ -190,9 +220,11 @@ public class GameScreen extends Canvas{
         gamePane.getChildren().add(seat4box);
         gamePane.getChildren().add(seat5box);
         gamePane.getChildren().add(seat6box);
+        createStations(gamePane);
         gamePane.getChildren().add(drinksCanvas);
         gamePane.getChildren().add(handsCanvas);
         gamePane.getChildren().add(hud);
+        gamePane.getChildren().add(prepLabel);
         root.getChildren().add(gamePane);
         root.widthProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
         root.heightProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
@@ -214,31 +246,83 @@ public class GameScreen extends Canvas{
             melvin.updateMouse(point.getX(), point.getY());
         });
 
-        seat1box.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY)
-                session.kick(0);
-        });
-        seat2box.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY)
-                session.kick(1);
-        });
-        seat3box.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY)
-                session.kick(2);
-        });
-        seat4box.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY)
-                session.kick(3);
-        });
-        seat5box.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY)
-                session.kick(4);
-        });
-        seat6box.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY)
-                session.kick(5);
-        });
+        setupSeat(seat1box, 0);
+        setupSeat(seat2box, 1);
+        setupSeat(seat3box, 2);
+        setupSeat(seat4box, 3);
+        setupSeat(seat5box, 4);
+        setupSeat(seat6box, 5);
         installKeys(scene);
+    }
+
+    private void setupSeat(Rectangle box, int seat) {
+        box.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                session.serve(seat);
+            } else if (event.getButton() == MouseButton.SECONDARY) {
+                session.kick(seat);
+            }
+        });
+    }
+
+    private Rectangle createZone(Pane pane, double x, double y, double width, double height) {
+        Rectangle zone = new Rectangle(x, y, width, height);
+        zone.setFill(Color.web("0xFFFFFF", 0));
+        pane.getChildren().add(zone);
+        return zone;
+    }
+
+    private void addGlassZone(Pane pane, double x, double y, double width, double height, Glass glass) {
+        Rectangle zone = createZone(pane, x, y, width, height);
+        zone.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                session.chooseGlass(glass);
+            }
+        });
+    }
+
+    private void addIngredientZone(Pane pane, double x, double y, double width, double height, Ingredient ingredient) {
+        Rectangle zone = createZone(pane, x, y, width, height);
+        zone.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                session.addIngredient(ingredient);
+            }
+        });
+    }
+
+    private void addTechniqueZone(Pane pane, double x, double y, double width, double height, Technique technique) {
+        Rectangle zone = createZone(pane, x, y, width, height);
+        zone.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                session.useTechnique(technique);
+            }
+        });
+    }
+
+    private void createStations(Pane pane) {
+        addGlassZone(pane, 73, 945, 82, 120, Glass.PINT);
+        addGlassZone(pane, 175, 915, 92, 150, Glass.MARTINI);
+        addGlassZone(pane, 278, 915, 62, 150, Glass.HIGHBALL);
+        addGlassZone(pane, 350, 915, 72, 150, Glass.WINE_GLASS);
+
+        addIngredientZone(pane, 527, 885, 80, 180, Ingredient.WHITE_WINE);
+        addIngredientZone(pane, 642, 885, 80, 180, Ingredient.VODKA);
+        addIngredientZone(pane, 761, 885, 80, 180, Ingredient.GIN);
+        addIngredientZone(pane, 880, 885, 80, 180, Ingredient.TEQUILA);
+        addIngredientZone(pane, 1011, 885, 80, 180, Ingredient.TRIPLE_SEC);
+        addIngredientZone(pane, 1101, 885, 80, 180, Ingredient.RASPBERRY_SYRUP);
+        addIngredientZone(pane, 1190, 885, 80, 180, Ingredient.TONIC);
+        addIngredientZone(pane, 1280, 885, 80, 180, Ingredient.LEMON_JUICE);
+        addIngredientZone(pane, 1376, 885, 84, 180, Ingredient.CRANBERRY_JUICE);
+
+        addIngredientZone(pane, 54, 540, 234, 277, Ingredient.BEER);
+        addIngredientZone(pane, 1506, 882, 446, 178, Ingredient.ICE);
+        addIngredientZone(pane, 696, 686, 92, 74, Ingredient.LIME);
+        addIngredientZone(pane, 942, 686, 92, 88, Ingredient.ORANGE_ZEST);
+        addIngredientZone(pane, 1195, 678, 86, 96, Ingredient.RASPBERRY);
+
+        addTechniqueZone(pane, 1518, 759, 284, 58, Technique.STIR);
+        addTechniqueZone(pane, 1799, 552, 107, 211, Technique.SHAKE);
     }
 
     private void installKeys(Scene scene) {
