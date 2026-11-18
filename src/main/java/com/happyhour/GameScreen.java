@@ -2,6 +2,7 @@ package com.happyhour;
 
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.Customer;
+import com.happyhour.model.drink.Drink;
 import com.happyhour.model.game.GameSession;
 
 import javafx.application.Platform;
@@ -11,6 +12,9 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
@@ -26,9 +30,30 @@ public class GameScreen extends Canvas{
     private Image table;
     private Image seats;
     private Image bg;
+
+    private Image orderBubble;
+    private Image beerFoam;
+    private Image beerGlass;
+    private Image beer;
+    private Image highballGlass;
+    private Image highball;
+    private Image martiniGlass;
+    private Image martini;
+    private Image wineGlass;
+    private Image wine;
+
+    private WritableImage ginTonic;
+    private WritableImage tequilaTonic;
+    private WritableImage pinkCapeCod;
+    private WritableImage margarita;
+    private WritableImage cloverClub;
+    private WritableImage cosmopolitan;
+    
     private GraphicsContext batch;
+    private GraphicsContext drinkBatch;
     private GraphicsContext handsBatch;
     private Canvas handsCanvas;
+    private Canvas drinksCanvas;
     private Player melvin;
     private Image arm;
     private GameSession session;
@@ -46,12 +71,34 @@ public class GameScreen extends Canvas{
         table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,540,true, false);
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),1360, 120, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
+        
+        orderBubble = new Image(getClass().getResourceAsStream("/images/orderBubble.png"),180, 260, true, false);
+        beerFoam = new Image(getClass().getResourceAsStream("/images/beerFoam.png"),100, 150, true, false);
+        beerGlass = new Image(getClass().getResourceAsStream("/images/beerGlass.png"),100, 150, true, false);
+        beer = new Image(getClass().getResourceAsStream("/images/beer.png"),100, 150, true, false);
+        highballGlass = new Image(getClass().getResourceAsStream("/images/highballGlass.png"),60, 150, true, false);
+        highball = new Image(getClass().getResourceAsStream("/images/highball.png"),60, 150, true, false);
+        martiniGlass = new Image(getClass().getResourceAsStream("/images/martiniGlass.png"),90, 150, true, false);
+        martini = new Image(getClass().getResourceAsStream("/images/martini.png"),90, 150, true, false);
+        wineGlass = new Image(getClass().getResourceAsStream("/images/wineGlass.png"),70, 150, true, false);
+        wine = new Image(getClass().getResourceAsStream("/images/wine.png"),70, 150, true, false);
+
+        ginTonic = tintImage(highball, Color.web("#00c7e6"));
+        tequilaTonic = tintImage(highball, Color.web("#ff9100"));
+        pinkCapeCod = tintImage(highball, Color.web("#FF7EB9"));
+        margarita = tintImage(martini, Color.web("#9BE15D"));
+        cloverClub = tintImage(martini, Color.web("#cd07ff"));
+        cosmopolitan = tintImage(martini, Color.web("#D7263D"));
+
         batch = getGraphicsContext2D();
         handsCanvas = new Canvas(WIDTH, HEIGHT);
         handsBatch = handsCanvas.getGraphicsContext2D();
+        drinksCanvas = new Canvas(WIDTH, HEIGHT);
+        drinkBatch = drinksCanvas.getGraphicsContext2D();
         melvin = new Player();
         arm = melvin.getArm();
         handsCanvas.setMouseTransparent(true);
+        drinksCanvas.setMouseTransparent(true);
         
     }
     private void renderCustomers() {
@@ -59,7 +106,7 @@ public class GameScreen extends Canvas{
             Customer customer = session.getCustomer(i);
 
             if (customer != null) {
-                double x = 280 + (i * 240);
+                double x = 310 + (i * 240);
                 double y = 390;
 
                 batch.drawImage(customer.getSprite(), x, y, 160, 350);
@@ -123,12 +170,12 @@ public class GameScreen extends Canvas{
         hud.setPrefWidth(WIDTH);
         hud.setStyle("-fx-background-color: rgba(0, 0, 0, 0.35); -fx-padding: 12 30 12 30;");
 
-        Rectangle seat1box = new Rectangle(280, 390, 160, 290);
-        Rectangle seat2box = new Rectangle(520, 390, 160, 290);
-        Rectangle seat3box = new Rectangle(760, 390, 160, 290);
-        Rectangle seat4box = new Rectangle(1000, 390, 160, 290);
-        Rectangle seat5box = new Rectangle(1240, 390, 160, 290);
-        Rectangle seat6box = new Rectangle(1480, 390, 160, 290);
+        Rectangle seat1box = new Rectangle(310, 390, 160, 290);
+        Rectangle seat2box = new Rectangle(550, 390, 160, 290);
+        Rectangle seat3box = new Rectangle(790, 390, 160, 290);
+        Rectangle seat4box = new Rectangle(1030, 390, 160, 290);
+        Rectangle seat5box = new Rectangle(1270, 390, 160, 290);
+        Rectangle seat6box = new Rectangle(1510, 390, 160, 290);
         seat1box.setFill(Color.web("0xFF0000",0));
         seat2box.setFill(Color.web("0xFF9900",0));
         seat3box.setFill(Color.web("0xFFFF00",0));
@@ -143,6 +190,7 @@ public class GameScreen extends Canvas{
         gamePane.getChildren().add(seat4box);
         gamePane.getChildren().add(seat5box);
         gamePane.getChildren().add(seat6box);
+        gamePane.getChildren().add(drinksCanvas);
         gamePane.getChildren().add(handsCanvas);
         gamePane.getChildren().add(hud);
         root.getChildren().add(gamePane);
@@ -207,6 +255,74 @@ public class GameScreen extends Canvas{
         });
     }
 
+    private WritableImage tintImage(Image source, Color tint) {
+        int width = (int) source.getWidth();
+        int height = (int) source.getHeight();
+        PixelReader reader = source.getPixelReader();
+        WritableImage result = new WritableImage(width, height);
+        PixelWriter writer = result.getPixelWriter();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Color color = reader.getColor(x, y);
+                double brightness = color.getBrightness();
+                Color tintedColor = Color.color(tint.getRed() * brightness, tint.getGreen() * brightness, tint.getBlue() * brightness, color.getOpacity());
+                writer.setColor(x, y, tintedColor);
+            }
+        }
+        return result;
+    }
+    public void renderOrders() {
+        drinkBatch.clearRect(0, 0, WIDTH, HEIGHT);
+        for (int seat = 0; seat < GameConfig.SEATS; seat++) {
+            Customer customer = session.getCustomer(seat);
+            if (customer != null) {
+                Drink order = customer.getOrder();
+                if (order != null) {
+                    drinkBatch.drawImage(orderBubble, 310 - 10 + seat*240, 170, 180, 260);
+                    switch (order.getGlass()) {
+                        case PINT:
+                            drinkBatch.drawImage(beer, 310 + 30 + seat*240, 190, 100, 150);
+                            drinkBatch.drawImage(beerGlass, 310 + 30 + seat*240, 190, 100, 150);
+                            drinkBatch.drawImage(beerFoam, 310 + 30 + seat*240, 190, 100, 150);
+                            break;
+                        case WINE_GLASS:
+                            drinkBatch.drawImage(wine, 310 + 40 + seat*240, 190, 80, 150);
+                            drinkBatch.drawImage(wineGlass, 310 + 40 + seat*240, 190, 80, 150);
+                            break;
+                        case HIGHBALL:
+                            switch (order.getName()) {
+                                case "Gin Tonic":
+                                    drinkBatch.drawImage(ginTonic, 310 + 50 + seat*240, 190, 60, 150);
+                                    break;
+                                case "Tequila Tonic":
+                                    drinkBatch.drawImage(tequilaTonic, 310 + 50 + seat*240, 190, 60, 150);
+                                    break;
+                                case "Pink Cape Cod":
+                                    drinkBatch.drawImage(pinkCapeCod, 310 + 50 + seat*240, 190, 60, 150);
+                                    break;
+                            }
+                            drinkBatch.drawImage(highballGlass, 310 + 50 + seat*240, 190, 60, 150);
+                            break;
+                        case MARTINI:  
+                            switch (order.getName()) {
+                                case "Margarita":
+                                    drinkBatch.drawImage(margarita, 310 + 30 + seat*240, 190, 100, 150);
+                                    break;
+                                case "Clover Club":
+                                    drinkBatch.drawImage(cloverClub, 310 + 30 + seat*240, 190, 100, 150);
+                                    break;
+                                case "Cosmopolitan":
+                                    drinkBatch.drawImage(cosmopolitan, 310 + 30 + seat*240, 190, 100, 150);
+                                    break;
+                            }
+                            drinkBatch.drawImage(martiniGlass, 310 + 30 + seat*240, 190, 100, 150);
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
     public void pause() {
         if (session.isOver()) {
             return;
@@ -242,9 +358,10 @@ public class GameScreen extends Canvas{
     public void render() {
         updateHud();
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
-        batch.drawImage(seats, 280, 590, 1360, 120);
+        batch.drawImage(seats, 310, 590, 1360, 120);
         renderCustomers();
         batch.drawImage(table, 0, 540, WIDTH, 540);
+        renderOrders();
 
         double hand1X = melvin.getX() - 192;
         double hand1Y = melvin.getY();
