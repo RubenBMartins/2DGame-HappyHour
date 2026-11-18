@@ -6,10 +6,7 @@ import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.ChildCustomer;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.customer.CustomerFactory;
-import com.happyhour.model.customer.GenerousCustomer;
-import com.happyhour.model.customer.NormalCustomer;
 import com.happyhour.model.customer.PickyCustomer;
-import com.happyhour.model.customer.RushedCustomer;
 import com.happyhour.model.drink.Drink;
 import com.happyhour.model.drink.DrinkCategory;
 import com.happyhour.model.drink.Glass;
@@ -38,6 +35,12 @@ public class GameSession {
     private boolean defeat = false;
     private ArrayList<Integer> openSeats = new ArrayList<Integer>();
     private Random rand = new Random();
+
+    public GameSession() {
+        double range = GameConfig.FIRST_CUSTOMER_MAX - GameConfig.FIRST_CUSTOMER_MIN;
+        double firstDelay = GameConfig.FIRST_CUSTOMER_MIN + rand.nextDouble() * range;
+        spawnTimer = GameConfig.OPENING_SPAWN_DELAY - firstDelay;
+    }
 
     public void addListener(GameListener listener) {
         listeners.add(listener);
@@ -125,25 +128,7 @@ public class GameSession {
     public void spawnCustomer() {
         int seat = findFreeSeat();
         if (!over && !closed && seat != -1) {
-            Customer customer = new NormalCustomer(null);
-            int n = rand.nextInt(5);
-            switch(n) {
-                case 0:
-                    customer = new ChildCustomer(null);
-                    break;
-                case 1:
-                    customer = new PickyCustomer(null);
-                    break;
-                case 2:
-                    customer = new GenerousCustomer(null);
-                    break;
-                case 3:
-                    customer = new RushedCustomer(null);
-                    break;
-                default:
-                    customer = new NormalCustomer(null);
-                    break;
-            }
+            Customer customer = factory.createCustomer(elapsed, phase != Phase.OPENING);
             giveOrder(customer);
             placeCustomer(seat, customer);
         }
@@ -300,8 +285,7 @@ public class GameSession {
         if (openSeats.size() != 0) {
             int n = rand.nextInt(openSeats.size());
             return openSeats.get(n);
-        }
-        else {
+        } else {
             return -1;
         }
     }

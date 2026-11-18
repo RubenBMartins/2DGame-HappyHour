@@ -3,17 +3,14 @@ package com.happyhour;
 import com.happyhour.model.game.GameSession;
 
 import javafx.animation.AnimationTimer;
-import javafx.scene.control.Label;
 
 public class GameLoop extends AnimationTimer {
     private long lastTime = 0;
     private GameSession session;
-    private Label infoLabel;
     private GameScreen curscreen;
 
-    public GameLoop(GameSession session, Label infoLabel, GameScreen gameScreen) {
+    public GameLoop(GameSession session, GameScreen gameScreen) {
         this.session = session;
-        this.infoLabel = infoLabel;
         this.curscreen = gameScreen;
     }
 
@@ -34,8 +31,5 @@ public class GameLoop extends AnimationTimer {
         }
 
         curscreen.render();
-        int seconds = (int) session.getElapsed();
-        infoLabel.setText("Heure : " + seconds / 60 + ":" + seconds % 60 + "   |   " + session.getPhase()
-                + "   |   Pourboires : " + session.getTips() + " €   |   Clients perdus : " + session.getLostCustomers());
     }
 }

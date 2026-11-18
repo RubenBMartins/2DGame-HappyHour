@@ -10,7 +10,7 @@ public class MusicPlayer {
         Media media = new Media(getClass().getResource(path).toExternalForm());
         player = new MediaPlayer(media);
         player.setCycleCount(MediaPlayer.INDEFINITE);
-        player.setVolume(0.5);
+        player.setVolume(1);
     }
 
     public void play() {
