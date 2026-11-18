@@ -6,7 +6,10 @@ import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.ChildCustomer;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.customer.CustomerFactory;
+import com.happyhour.model.customer.GenerousCustomer;
+import com.happyhour.model.customer.NormalCustomer;
 import com.happyhour.model.customer.PickyCustomer;
+import com.happyhour.model.customer.RushedCustomer;
 import com.happyhour.model.drink.Drink;
 import com.happyhour.model.drink.DrinkCategory;
 import com.happyhour.model.drink.Glass;
@@ -116,6 +119,33 @@ public class GameSession {
             Customer child = new ChildCustomer(null);
             giveOrder(child);
             placeCustomer(seat, child);
+        }
+    }
+
+    public void spawnCustomer() {
+        int seat = findFreeSeat();
+        if (!over && !closed && seat != -1) {
+            Customer customer = new NormalCustomer(null);
+            int n = rand.nextInt(5);
+            switch(n) {
+                case 0:
+                    customer = new ChildCustomer(null);
+                    break;
+                case 1:
+                    customer = new PickyCustomer(null);
+                    break;
+                case 2:
+                    customer = new GenerousCustomer(null);
+                    break;
+                case 3:
+                    customer = new RushedCustomer(null);
+                    break;
+                default:
+                    customer = new NormalCustomer(null);
+                    break;
+            }
+            giveOrder(customer);
+            placeCustomer(seat, customer);
         }
     }
 

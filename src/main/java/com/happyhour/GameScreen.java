@@ -166,6 +166,8 @@ public class GameScreen extends Canvas{
                 session.spawnChild();
             } else if (event.getCode() == KeyCode.N) {
                 session.skipPhase();
+            } else if (event.getCode() == KeyCode.O) {
+                session.spawnCustomer();
             }
         });
     }
