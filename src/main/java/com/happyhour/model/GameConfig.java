@@ -4,6 +4,8 @@ public class GameConfig {
     public static final int SEATS = 6;
     public static final int MAX_LOST = 10;
 
+    public static final double FIRST_CUSTOMER_MIN = 1;
+    public static final double FIRST_CUSTOMER_MAX = 3;
     public static final double HAPPY_HOUR_START = 60;
     public static final double FORCE_TIME = 150;
     public static final double RUSH_START = 180;

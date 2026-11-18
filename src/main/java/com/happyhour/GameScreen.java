@@ -6,21 +6,23 @@ import com.happyhour.model.drink.Drink;
 import com.happyhour.model.game.GameSession;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.transform.Scale;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 
 public class GameScreen extends Canvas{
     public static final int WIDTH = 1980;
@@ -59,6 +61,9 @@ public class GameScreen extends Canvas{
     private Stage stage;
     private Pane root;
     private GameLoop gameLoop;
+    private Label timeLabel;
+    private Label moneyLabel;
+    private Label lostLabel;
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -124,6 +129,31 @@ public class GameScreen extends Canvas{
         gamePane.setLayoutX(x);
         gamePane.setLayoutY(y);
     }
+
+    private Label createHudLabel(Pos position) {
+        Label label = new Label();
+        label.setStyle("-fx-text-fill: #ffd9ec;"
+                + "-fx-font-family: 'Monospaced';"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 26px;");
+        label.setPrefWidth((WIDTH - 60) / 3.0);
+        label.setAlignment(position);
+        return label;
+    }
+
+    private void updateHud() {
+        double remaining = GameConfig.EVENING_END - session.getElapsed();
+        if (remaining < 0) {
+            remaining = 0;
+        }
+        int minutes = (int) remaining / 60;
+        int seconds = (int) remaining % 60;
+
+        timeLabel.setText("TEMPS " + String.format("%d:%02d", minutes, seconds));
+        moneyLabel.setText("CAISSE " + String.format("%.0f €", session.getRegister().getTotal()));
+        lostLabel.setText("CLIENTS PERDUS " + session.getLostCustomers() + "/" + GameConfig.MAX_LOST);
+    }
+
     public void start(Stage stage) {
         this.stage = stage;
         Pane gamePane = new Pane();
@@ -132,10 +162,14 @@ public class GameScreen extends Canvas{
         root = new Pane();
         root.setStyle("-fx-background-color: #3b1f5c;");
 
-        Label infoLabel = new Label();
-        infoLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
-        infoLabel.setLayoutX(20);
-        infoLabel.setLayoutY(20);
+        timeLabel = createHudLabel(Pos.CENTER_LEFT);
+        moneyLabel = createHudLabel(Pos.CENTER);
+        lostLabel = createHudLabel(Pos.CENTER_RIGHT);
+
+        HBox hud = new HBox(timeLabel, moneyLabel, lostLabel);
+        hud.setPrefWidth(WIDTH);
+        hud.setStyle("-fx-background-color: rgba(0, 0, 0, 0.35); -fx-padding: 12 30 12 30;");
+
         Rectangle seat1box = new Rectangle(310, 390, 160, 290);
         Rectangle seat2box = new Rectangle(550, 390, 160, 290);
         Rectangle seat3box = new Rectangle(790, 390, 160, 290);
@@ -158,13 +192,13 @@ public class GameScreen extends Canvas{
         gamePane.getChildren().add(seat6box);
         gamePane.getChildren().add(drinksCanvas);
         gamePane.getChildren().add(handsCanvas);
-        gamePane.getChildren().add(infoLabel);
+        gamePane.getChildren().add(hud);
         root.getChildren().add(gamePane);
         root.widthProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
         root.heightProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
         session = new GameSession();
 
-        gameLoop = new GameLoop(session, infoLabel, this);
+        gameLoop = new GameLoop(session, this);
         gameLoop.start();
 
         Scene scene = stage.getScene();
@@ -322,6 +356,7 @@ public class GameScreen extends Canvas{
     }
 
     public void render() {
+        updateHud();
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
         batch.drawImage(seats, 310, 590, 1360, 120);
         renderCustomers();
