@@ -113,11 +113,9 @@ public class GameScreen extends Canvas{
         GameLoop gameLoop = new GameLoop(session, infoLabel, this);
         gameLoop.start();
 
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
+        Scene scene = stage.getScene();
+        scene.setRoot(root);
         resizeGame(gamePane, root);
-        stage.setTitle("Happy Hour");
-        stage.setScene(scene);
-        stage.show();
         root.setOnMouseMoved(event -> {
             var point = gamePane.sceneToLocal(event.getSceneX(), event.getSceneY());
             melvin.updateMouse(point.getX(), point.getY());

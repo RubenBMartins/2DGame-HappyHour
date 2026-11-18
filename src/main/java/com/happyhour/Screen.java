@@ -111,7 +111,13 @@ public abstract class Screen {
     }
 
     protected void display(Stage stage, VBox root) {
-        stage.setScene(new Scene(root, 1280, 720));
+        double width = 1280;
+        double height = 720;
+        if (stage.isShowing()) {
+            width = stage.getWidth();
+            height = stage.getHeight();
+        }
+        stage.setScene(new Scene(root, width, height));
     }
 
     public abstract void start(Stage stage);
