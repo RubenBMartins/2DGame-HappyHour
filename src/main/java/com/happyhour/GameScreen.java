@@ -3,6 +3,7 @@ package com.happyhour;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.game.GameSession;
 
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -29,6 +30,9 @@ public class GameScreen extends Canvas{
     private Image arm;
     private GameSession session;
     private HappyHourApp app;
+    private Stage stage;
+    private Pane root;
+    private GameLoop gameLoop;
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -73,10 +77,11 @@ public class GameScreen extends Canvas{
         gamePane.setLayoutY(y);
     }
     public void start(Stage stage) {
+        this.stage = stage;
         Pane gamePane = new Pane();
         gamePane.setPrefSize(WIDTH, HEIGHT);
         gamePane.setMinSize(WIDTH, HEIGHT);
-        Pane root = new Pane();
+        root = new Pane();
         root.setStyle("-fx-background-color: #3b1f5c;");
 
         Label infoLabel = new Label();
@@ -110,7 +115,7 @@ public class GameScreen extends Canvas{
         root.heightProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
         session = new GameSession();
 
-        GameLoop gameLoop = new GameLoop(session, infoLabel, this);
+        gameLoop = new GameLoop(session, infoLabel, this);
         gameLoop.start();
 
         Scene scene = stage.getScene();
@@ -150,15 +155,47 @@ public class GameScreen extends Canvas{
             if (event.getButton() == MouseButton.SECONDARY)
                 session.kick(5);
         });
+        installKeys(scene);
+    }
+
+    private void installKeys(Scene scene) {
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.SPACE) {
-                session.togglePause();
+                pause();
             } else if (event.getCode() == KeyCode.E) {
                 session.spawnChild();
             } else if (event.getCode() == KeyCode.N) {
                 session.skipPhase();
             }
         });
+    }
+
+    public void pause() {
+        if (session.isOver()) {
+            return;
+        }
+        if (!session.isPaused()) {
+            session.togglePause();
+        }
+        new PauseScreen(app, this).start(stage);
+    }
+
+    public void resume() {
+        stage.getScene().setRoot(root);
+        installKeys(stage.getScene());
+        if (session.isPaused()) {
+            session.togglePause();
+        }
+    }
+
+    public void restart() {
+        gameLoop.stop();
+        app.showGame();
+    }
+
+    public void quit() {
+        gameLoop.stop();
+        Platform.exit();
     }
 
     public void endGame(GameSession session) {
