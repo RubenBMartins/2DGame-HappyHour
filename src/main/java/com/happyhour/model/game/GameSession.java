@@ -1,6 +1,7 @@
 package com.happyhour.model.game;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.ChildCustomer;
@@ -15,7 +16,6 @@ import com.happyhour.model.drink.Preparation;
 import com.happyhour.model.drink.RecipeBook;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.score.CashRegister;
-import java.util.Random;
 
 public class GameSession {
     private Customer[] seats = new Customer[GameConfig.SEATS];
@@ -29,17 +29,19 @@ public class GameSession {
     private double elapsed = 0;
     private Phase phase = Phase.OPENING;
     private double spawnTimer = 0;
+    private double nextSpawnDelay;
     private boolean closed = false;
     private boolean paused = false;
     private boolean over = false;
     private boolean defeat = false;
     private ArrayList<Integer> openSeats = new ArrayList<Integer>();
     private Random rand = new Random();
+    private String feedback = null;
+    private int feedbackGrade = 0;
+    private double feedbackTimer = 0;
 
     public GameSession() {
-        double range = GameConfig.FIRST_CUSTOMER_MAX - GameConfig.FIRST_CUSTOMER_MIN;
-        double firstDelay = GameConfig.FIRST_CUSTOMER_MIN + rand.nextDouble() * range;
-        spawnTimer = GameConfig.OPENING_SPAWN_DELAY - firstDelay;
+        nextSpawnDelay = randomBetween(GameConfig.FIRST_CUSTOMER_MIN, GameConfig.FIRST_CUSTOMER_MAX);
     }
 
     public void addListener(GameListener listener) {
@@ -79,6 +81,7 @@ public class GameSession {
         Drink order = customer.getOrder();
         int grade = order.grade(preparation);
         preparation = new Preparation();
+        showFeedback(grade);
 
         if (!customer.accepts(grade)) {
             loseCustomer(seat);
@@ -90,11 +93,24 @@ public class GameSession {
             speedBonus = GameConfig.SPEED_BONUS;
         }
         double tip = customer.computeTip(order.getBaseTip(grade), speedBonus);
-        register.recordSale(order, tip);
+        double price = order.getPrice() * grade / 10.0;
+        register.recordSale(order, price, tip);
         customer.serve();
         for (GameListener listener : listeners) {
             listener.onScoreChanged(register.getTotal());
         }
+    }
+
+    private void showFeedback(int grade) {
+        if (grade == 10) {
+            feedback = "PARFAIT ! 10/10";
+        } else if (grade >= 5) {
+            feedback = grade + "/10 : " + (grade * 10) + " % DU PRIX";
+        } else {
+            feedback = "NUL ! " + grade + "/10";
+        }
+        feedbackGrade = grade;
+        feedbackTimer = GameConfig.FEEDBACK_TIME;
     }
 
     public void kick(int seat) {
@@ -149,6 +165,13 @@ public class GameSession {
             return;
         }
 
+        if (feedbackTimer > 0) {
+            feedbackTimer = feedbackTimer - deltaTime;
+            if (feedbackTimer <= 0) {
+                feedback = null;
+            }
+        }
+
         elapsed = elapsed + deltaTime;
         Phase newPhase = getPhase();
         if (newPhase != phase) {
@@ -187,14 +210,10 @@ public class GameSession {
         }
 
         spawnTimer = spawnTimer + deltaTime;
-        if (spawnTimer >= getSpawnDelay()) {
+        if (spawnTimer >= nextSpawnDelay) {
             spawnTimer = 0;
-            int seat = findFreeSeat();
-            if (seat != -1) {
-                Customer customer = factory.createCustomer(elapsed, phase != Phase.OPENING);
-                giveOrder(customer);
-                placeCustomer(seat, customer);
-            }
+            nextSpawnDelay = randomSpawnDelay();
+            spawnCustomer();
         }
     }
 
@@ -213,13 +232,17 @@ public class GameSession {
         return Phase.RUSH;
     }
 
-    private double getSpawnDelay() {
+    private double randomSpawnDelay() {
         if (phase == Phase.OPENING) {
-            return GameConfig.OPENING_SPAWN_DELAY;
+            return randomBetween(GameConfig.OPENING_SPAWN_MIN, GameConfig.OPENING_SPAWN_MAX);
         } else if (phase == Phase.HAPPY_HOUR) {
-            return GameConfig.HAPPY_HOUR_SPAWN_DELAY;
+            return randomBetween(GameConfig.HAPPY_HOUR_SPAWN_MIN, GameConfig.HAPPY_HOUR_SPAWN_MAX);
         }
-        return GameConfig.RUSH_SPAWN_DELAY;
+        return randomBetween(GameConfig.RUSH_SPAWN_MIN, GameConfig.RUSH_SPAWN_MAX);
+    }
+
+    private double randomBetween(double min, double max) {
+        return min + rand.nextDouble() * (max - min);
     }
 
     private void closeBar() {
@@ -310,6 +333,14 @@ public class GameSession {
             }
         }
         return occupied;
+    }
+
+    public String getFeedback() {
+        return feedback;
+    }
+
+    public int getFeedbackGrade() {
+        return feedbackGrade;
     }
 
     public Preparation getPreparation() {

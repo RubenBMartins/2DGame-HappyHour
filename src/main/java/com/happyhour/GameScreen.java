@@ -71,6 +71,7 @@ public class GameScreen extends Canvas{
     private Label moneyLabel;
     private Label lostLabel;
     private Label prepLabel;
+    private Label feedbackLabel;
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -177,6 +178,23 @@ public class GameScreen extends Canvas{
         } else {
             prepLabel.setText("EN MAIN : " + String.join(" + ", parts));
         }
+
+        String feedback = session.getFeedback();
+        if (feedback == null) {
+            feedbackLabel.setText("");
+        } else {
+            String color = "#ffffff";
+            if (session.getFeedbackGrade() == 10) {
+                color = "#ff9900";
+            } else if (session.getFeedbackGrade() < 5) {
+                color = "#ff4d4d";
+            }
+            feedbackLabel.setStyle("-fx-text-fill: " + color + ";"
+                    + "-fx-font-family: 'Monospaced';"
+                    + "-fx-font-weight: bold;"
+                    + "-fx-font-size: 48px;");
+            feedbackLabel.setText(feedback);
+        }
     }
 
     public void start(Stage stage) {
@@ -199,6 +217,12 @@ public class GameScreen extends Canvas{
         prepLabel.setPrefWidth(WIDTH);
         prepLabel.setLayoutY(70);
         prepLabel.setMouseTransparent(true);
+
+        feedbackLabel = new Label();
+        feedbackLabel.setPrefWidth(WIDTH);
+        feedbackLabel.setAlignment(Pos.CENTER);
+        feedbackLabel.setLayoutY(140);
+        feedbackLabel.setMouseTransparent(true);
 
         Rectangle seat1box = new Rectangle(310, 390, 160, 290);
         Rectangle seat2box = new Rectangle(550, 390, 160, 290);
@@ -225,6 +249,7 @@ public class GameScreen extends Canvas{
         gamePane.getChildren().add(handsCanvas);
         gamePane.getChildren().add(hud);
         gamePane.getChildren().add(prepLabel);
+        gamePane.getChildren().add(feedbackLabel);
         root.getChildren().add(gamePane);
         root.widthProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
         root.heightProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
@@ -355,55 +380,71 @@ public class GameScreen extends Canvas{
         }
         return result;
     }
+
     public void renderOrders() {
         drinkBatch.clearRect(0, 0, WIDTH, HEIGHT);
         for (int seat = 0; seat < GameConfig.SEATS; seat++) {
             Customer customer = session.getCustomer(seat);
-            if (customer != null) {
-                Drink order = customer.getOrder();
-                if (order != null) {
-                    drinkBatch.drawImage(orderBubble, 310 - 10 + seat*240, 170, 180, 260);
-                    switch (order.getGlass()) {
-                        case PINT:
-                            drinkBatch.drawImage(beer, 310 + 30 + seat*240, 190, 100, 150);
-                            drinkBatch.drawImage(beerGlass, 310 + 30 + seat*240, 190, 100, 150);
-                            drinkBatch.drawImage(beerFoam, 310 + 30 + seat*240, 190, 100, 150);
-                            break;
-                        case WINE_GLASS:
-                            drinkBatch.drawImage(wine, 310 + 40 + seat*240, 190, 80, 150);
-                            drinkBatch.drawImage(wineGlass, 310 + 40 + seat*240, 190, 80, 150);
-                            break;
-                        case HIGHBALL:
-                            switch (order.getName()) {
-                                case "Gin Tonic":
-                                    drinkBatch.drawImage(ginTonic, 310 + 50 + seat*240, 190, 60, 150);
-                                    break;
-                                case "Tequila Tonic":
-                                    drinkBatch.drawImage(tequilaTonic, 310 + 50 + seat*240, 190, 60, 150);
-                                    break;
-                                case "Pink Cape Cod":
-                                    drinkBatch.drawImage(pinkCapeCod, 310 + 50 + seat*240, 190, 60, 150);
-                                    break;
-                            }
-                            drinkBatch.drawImage(highballGlass, 310 + 50 + seat*240, 190, 60, 150);
-                            break;
-                        case MARTINI:  
-                            switch (order.getName()) {
-                                case "Margarita":
-                                    drinkBatch.drawImage(margarita, 310 + 30 + seat*240, 190, 100, 150);
-                                    break;
-                                case "Clover Club":
-                                    drinkBatch.drawImage(cloverClub, 310 + 30 + seat*240, 190, 100, 150);
-                                    break;
-                                case "Cosmopolitan":
-                                    drinkBatch.drawImage(cosmopolitan, 310 + 30 + seat*240, 190, 100, 150);
-                                    break;
-                            }
-                            drinkBatch.drawImage(martiniGlass, 310 + 30 + seat*240, 190, 100, 150);
-                            break;
-                    }
+            if (customer != null && customer.getOrder() != null) {
+                double centerX = 310 + 80 + seat * 240;
+                if (customer.canBeServed()) {
+                    drinkBatch.drawImage(orderBubble, 300 + seat * 240, 170, 180, 260);
+                    drawDrink(customer.getOrder(), centerX, 190, 1);
+                } else {
+                    drawDrink(customer.getOrder(), centerX, 630, 0.6);
                 }
             }
+        }
+    }
+
+    private void drawDrink(Drink order, double centerX, double y, double scale) {
+        double width = 100 * scale;
+        if (order.getGlass() == Glass.WINE_GLASS) {
+            width = 80 * scale;
+        } else if (order.getGlass() == Glass.HIGHBALL) {
+            width = 60 * scale;
+        }
+        double height = 150 * scale;
+        double x = centerX - width / 2;
+
+        switch (order.getGlass()) {
+            case PINT:
+                drinkBatch.drawImage(beer, x, y, width, height);
+                drinkBatch.drawImage(beerGlass, x, y, width, height);
+                drinkBatch.drawImage(beerFoam, x, y, width, height);
+                break;
+            case WINE_GLASS:
+                drinkBatch.drawImage(wine, x, y, width, height);
+                drinkBatch.drawImage(wineGlass, x, y, width, height);
+                break;
+            case HIGHBALL:
+                switch (order.getName()) {
+                    case "Gin Tonic":
+                        drinkBatch.drawImage(ginTonic, x, y, width, height);
+                        break;
+                    case "Tequila Tonic":
+                        drinkBatch.drawImage(tequilaTonic, x, y, width, height);
+                        break;
+                    case "Pink Cape Cod":
+                        drinkBatch.drawImage(pinkCapeCod, x, y, width, height);
+                        break;
+                }
+                drinkBatch.drawImage(highballGlass, x, y, width, height);
+                break;
+            case MARTINI:
+                switch (order.getName()) {
+                    case "Margarita":
+                        drinkBatch.drawImage(margarita, x, y, width, height);
+                        break;
+                    case "Clover Club":
+                        drinkBatch.drawImage(cloverClub, x, y, width, height);
+                        break;
+                    case "Cosmopolitan":
+                        drinkBatch.drawImage(cosmopolitan, x, y, width, height);
+                        break;
+                }
+                drinkBatch.drawImage(martiniGlass, x, y, width, height);
+                break;
         }
     }
 
