@@ -11,6 +11,8 @@ import com.happyhour.model.drink.Preparation;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.game.GameSession;
 
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -58,10 +60,13 @@ public class GameScreen extends Canvas{
     private GraphicsContext batch;
     private GraphicsContext drinkBatch;
     private GraphicsContext handsBatch;
+    private GraphicsContext kickBatch;
     private Canvas handsCanvas;
     private Canvas drinksCanvas;
+    private Canvas kickCanvas;
     private Player melvin;
     private Image arm;
+    private Image kick;
     private GameSession session;
     private HappyHourApp app;
     private Stage stage;
@@ -72,6 +77,7 @@ public class GameScreen extends Canvas{
     private Label lostLabel;
     private Label prepLabel;
     private Label feedbackLabel;
+    private PauseTransition delay;
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -79,6 +85,7 @@ public class GameScreen extends Canvas{
         table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,540,true, false);
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),1360, 120, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
+        kick = new Image(getClass().getResourceAsStream("/images/kick.png"),200, 200, true, false);
         
         orderBubble = new Image(getClass().getResourceAsStream("/images/orderBubble.png"),180, 260, true, false);
         beerFoam = new Image(getClass().getResourceAsStream("/images/beerFoam.png"),100, 150, true, false);
@@ -103,10 +110,14 @@ public class GameScreen extends Canvas{
         handsBatch = handsCanvas.getGraphicsContext2D();
         drinksCanvas = new Canvas(WIDTH, HEIGHT);
         drinkBatch = drinksCanvas.getGraphicsContext2D();
+        kickCanvas = new Canvas(WIDTH, HEIGHT);
+        kickBatch = kickCanvas.getGraphicsContext2D();
         melvin = new Player();
         arm = melvin.getArm();
         handsCanvas.setMouseTransparent(true);
         drinksCanvas.setMouseTransparent(true);
+        kickCanvas.setMouseTransparent(true);
+        delay = new PauseTransition(Duration.seconds(0.5));
         
     }
     private void renderCustomers() {
@@ -197,6 +208,14 @@ public class GameScreen extends Canvas{
         }
     }
 
+    public void kickBoom(double x, double y) {
+        kickBatch.drawImage(kick, x, y, 200, 200);
+        delay.setOnFinished(event -> {
+            kickBatch.clearRect(x, y, 200, 200);
+        });
+        delay.playFromStart();
+    }
+
     public void start(Stage stage) {
         this.stage = stage;
         Pane gamePane = new Pane();
@@ -246,6 +265,7 @@ public class GameScreen extends Canvas{
         gamePane.getChildren().add(seat6box);
         createStations(gamePane);
         gamePane.getChildren().add(drinksCanvas);
+        gamePane.getChildren().add(kickCanvas);
         gamePane.getChildren().add(handsCanvas);
         gamePane.getChildren().add(hud);
         gamePane.getChildren().add(prepLabel);
@@ -271,21 +291,24 @@ public class GameScreen extends Canvas{
             melvin.updateMouse(point.getX(), point.getY());
         });
 
-        setupSeat(seat1box, 0);
-        setupSeat(seat2box, 1);
-        setupSeat(seat3box, 2);
-        setupSeat(seat4box, 3);
-        setupSeat(seat5box, 4);
-        setupSeat(seat6box, 5);
+        setupSeat(seat1box, 0, 310);
+        setupSeat(seat2box, 1, 510);
+        setupSeat(seat3box, 2, 750);
+        setupSeat(seat4box, 3, 990);
+        setupSeat(seat5box, 4, 1230);
+        setupSeat(seat6box, 5, 1470);
         installKeys(scene);
     }
 
-    private void setupSeat(Rectangle box, int seat) {
+    private void setupSeat(Rectangle box, int seat, double kickX) {
         box.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 session.serve(seat);
             } else if (event.getButton() == MouseButton.SECONDARY) {
-                session.kick(seat);
+                if (session.getCustomer(seat) != null) {
+                    session.kick(seat);
+                    kickBoom(kickX, 390);
+                }
             }
         });
     }
