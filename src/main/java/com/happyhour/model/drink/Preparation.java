@@ -23,6 +23,18 @@ public class Preparation {
         this.technique = technique;
     }
 
+    public boolean isReady() {
+        if (glass == null) {
+            return false;
+        }
+        for (Ingredient ingredient : ingredients) {
+            if (ingredient.isLiquid()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Glass getGlass() {
         return glass;
     }

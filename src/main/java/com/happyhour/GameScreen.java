@@ -15,11 +15,13 @@ import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
@@ -78,6 +80,7 @@ public class GameScreen extends Canvas{
     private Label prepLabel;
     private Label feedbackLabel;
     private PauseTransition delay;
+    private ImageView recipeView;
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -155,7 +158,7 @@ public class GameScreen extends Canvas{
                 + "-fx-font-family: 'Monospaced';"
                 + "-fx-font-weight: bold;"
                 + "-fx-font-size: 26px;");
-        label.setPrefWidth((WIDTH - 60) / 3.0);
+        label.setPrefWidth((WIDTH - 60 - 40 - 30) / 3.0);
         label.setAlignment(position);
         return label;
     }
@@ -228,7 +231,14 @@ public class GameScreen extends Canvas{
         moneyLabel = createHudLabel(Pos.CENTER);
         lostLabel = createHudLabel(Pos.CENTER_RIGHT);
 
-        HBox hud = new HBox(timeLabel, moneyLabel, lostLabel);
+        ImageView bookIcon = new ImageView(new Image(getClass().getResourceAsStream("/images/bookIcon.png")));
+        bookIcon.setFitWidth(40);
+        bookIcon.setFitHeight(40);
+        bookIcon.setSmooth(false);
+        bookIcon.setCursor(Cursor.HAND);
+
+        HBox hud = new HBox(10, bookIcon, timeLabel, moneyLabel, lostLabel);
+        hud.setAlignment(Pos.CENTER_LEFT);
         hud.setPrefWidth(WIDTH);
         hud.setStyle("-fx-background-color: rgba(0, 0, 0, 0.35); -fx-padding: 12 30 12 30;");
 
@@ -242,6 +252,22 @@ public class GameScreen extends Canvas{
         feedbackLabel.setAlignment(Pos.CENTER);
         feedbackLabel.setLayoutY(140);
         feedbackLabel.setMouseTransparent(true);
+
+        recipeView = new ImageView(new Image(getClass().getResourceAsStream("/images/recipeBook.png")));
+        double bookHeight = HEIGHT - 70;
+        double bookWidth = bookHeight * 1920 / 1080;
+        recipeView.setFitWidth(bookWidth);
+        recipeView.setFitHeight(bookHeight);
+        recipeView.setLayoutX((WIDTH - bookWidth) / 2);
+        recipeView.setLayoutY(70);
+        recipeView.setVisible(false);
+
+        bookIcon.setOnMouseClicked(event -> {
+            recipeView.setVisible(!recipeView.isVisible());
+        });
+        recipeView.setOnMouseClicked(event -> {
+            recipeView.setVisible(false);
+        });
 
         Rectangle seat1box = new Rectangle(310, 390, 160, 290);
         Rectangle seat2box = new Rectangle(550, 390, 160, 290);
@@ -267,9 +293,10 @@ public class GameScreen extends Canvas{
         gamePane.getChildren().add(drinksCanvas);
         gamePane.getChildren().add(kickCanvas);
         gamePane.getChildren().add(handsCanvas);
-        gamePane.getChildren().add(hud);
         gamePane.getChildren().add(prepLabel);
         gamePane.getChildren().add(feedbackLabel);
+        gamePane.getChildren().add(recipeView);
+        gamePane.getChildren().add(hud);
         root.getChildren().add(gamePane);
         root.widthProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
         root.heightProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));

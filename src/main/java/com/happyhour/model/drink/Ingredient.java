@@ -14,5 +14,9 @@ public enum Ingredient {
     ORANGE_ZEST,
     RASPBERRY,
     BEER,
-    WHITE_WINE
+    WHITE_WINE;
+
+    public boolean isLiquid() {
+        return this != ICE && this != LIME && this != ORANGE_ZEST && this != RASPBERRY;
+    }
 }

@@ -73,6 +73,10 @@ public class GameSession {
             return;
         }
 
+        if (!preparation.isReady()) {
+            return;
+        }
+
         if (customer.isChild()) {
             policeRaid();
             return;
