@@ -11,8 +11,6 @@ import com.happyhour.model.drink.Preparation;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.game.GameSession;
 
-import javafx.animation.PauseTransition;
-import javafx.util.Duration;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -33,6 +31,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.transform.Scale;
+import java.util.List;
 
 public class GameScreen extends Canvas{
     public static final int WIDTH = 1980;
@@ -79,8 +78,8 @@ public class GameScreen extends Canvas{
     private Label lostLabel;
     private Label prepLabel;
     private Label feedbackLabel;
-    private PauseTransition delay;
     private ImageView recipeView;
+    private List<Explosion> explosions = new ArrayList<>();
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -120,7 +119,6 @@ public class GameScreen extends Canvas{
         handsCanvas.setMouseTransparent(true);
         drinksCanvas.setMouseTransparent(true);
         kickCanvas.setMouseTransparent(true);
-        delay = new PauseTransition(Duration.seconds(0.5));
         
     }
     private void renderCustomers() {
@@ -212,11 +210,7 @@ public class GameScreen extends Canvas{
     }
 
     public void kickBoom(double x, double y) {
-        kickBatch.drawImage(kick, x-90, y-50, 400, 400);
-        delay.setOnFinished(event -> {
-            kickBatch.clearRect(x-90, y-50, 400, 400);
-        });
-        delay.playFromStart();
+        explosions.add(new Explosion(x - 90, y - 50));
     }
 
     public void start(Stage stage) {
@@ -334,7 +328,7 @@ public class GameScreen extends Canvas{
             } else if (event.getButton() == MouseButton.SECONDARY) {
                 if (session.getCustomer(seat) != null) {
                     session.kick(seat);
-                    kickBoom(kickX, 390);
+                    explosions.add(new Explosion(kickX - 90, 390 - 50));
                 }
             }
         });
@@ -537,6 +531,18 @@ public class GameScreen extends Canvas{
         renderCustomers();
         batch.drawImage(table, 0, 540, WIDTH, 540);
         renderOrders();
+        explosions.removeIf(explosion -> explosion.getAge() > 500);
+        kickBatch.clearRect(0, 0, WIDTH, HEIGHT);
+        for (Explosion explosion : explosions) {
+            kickBatch.save();
+            kickBatch.translate(explosion.getX() + 200, explosion.getY() + 200);
+            kickBatch.rotate(explosion.getRotation());
+            if (explosion.getFlipStatus() == 1) {
+                kickBatch.scale(-1,1);
+            }
+            kickBatch.drawImage(kick, -200, -200, 400, 400);
+            kickBatch.restore();
+        }
 
         double hand1X = melvin.getX() - 192;
         double hand1Y = melvin.getY();
