@@ -2,9 +2,9 @@ package com.happyhour.model.customer;
 
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.drink.Drink;
+import com.happyhour.model.drink.Preparation;
 
 import javafx.scene.image.Image;
-import com.happyhour.model.customer.Customer;
 
 public abstract class Customer {
     private Drink order;
@@ -12,7 +12,7 @@ public abstract class Customer {
     private double maxPatience;
     private double patienceSpeed = 1;
     private CustomerState state = new WaitingState();
-    
+    private Preparation servedPreparation;
 
     public Customer(Drink order, double patience) {
         this.order = order;
@@ -80,6 +80,14 @@ public abstract class Customer {
 
     public void setOrder(Drink order) {
         this.order = order;
+    }
+
+    public Preparation getServedPreparation() {
+        return servedPreparation;
+    }
+
+    public void setServedPreparation(Preparation servedPreparation) {
+        this.servedPreparation = servedPreparation;
     }
 
     public double getPatience() {

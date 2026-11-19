@@ -112,6 +112,7 @@ public class GameSession {
 
         Drink order = customer.getOrder();
         int grade = order.grade(preparation);
+        Preparation served = preparation;
         preparation = new Preparation();
         showFeedback(grade);
 
@@ -127,6 +128,7 @@ public class GameSession {
         double tip = customer.computeTip(order.getBaseTip(grade), speedBonus);
         double price = order.getPrice() * grade / 10.0;
         register.recordSale(order, price, tip);
+        customer.setServedPreparation(served);
         customer.serve();
         for (GameListener listener : listeners) {
             listener.onScoreChanged(register.getTotal());
@@ -371,7 +373,7 @@ public class GameSession {
             for (GameListener listener : listeners) {
                 listener.onCustomerLeft(seat, customer);
             }
-        }    
+        }
     }
 
     private int findFreeSeat() {

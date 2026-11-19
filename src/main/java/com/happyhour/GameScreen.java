@@ -1,6 +1,8 @@
 package com.happyhour;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.Customer;
@@ -33,7 +35,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.transform.Scale;
-import java.util.List;
 
 public class GameScreen extends Canvas implements GameListener {
     public static final int WIDTH = 1980;
@@ -85,15 +86,16 @@ public class GameScreen extends Canvas implements GameListener {
     private ArrayList<CustomerAppears> customerAnimations = new ArrayList<>();
     private List<CustomerAppears> policeAnimations = new ArrayList<>();
     private Image policeImage;
+    private HashMap<String, Image> tintCache = new HashMap<>();
 
     /* Pour l'instant, on n'utilise qu'une seule méthode, n'ayant pas besoin des autres, je les initialise ici pour ne pas avoir d'erreurs */
 
     @Override
-        public void onPhaseChanged(Phase phase) {
+    public void onPhaseChanged(Phase phase) {
     }
 
     @Override
-        public void onScoreChanged(double tips) {
+    public void onScoreChanged(double tips) {
     }
 
     public GameScreen(HappyHourApp app) {
@@ -173,8 +175,6 @@ public class GameScreen extends Canvas implements GameListener {
         );
     }
 
-
-
     private void renderCustomers() {
         customerAnimations.removeIf(animation -> animation.getAge() >= 500);
 
@@ -184,7 +184,7 @@ public class GameScreen extends Canvas implements GameListener {
             if (customer != null) {
                 double x = 310 + (i * 240);
                 double y = 390;
-                
+
                 int currentSeat = i;
 
                 CustomerAppears animation = customerAnimations.stream()
@@ -193,16 +193,17 @@ public class GameScreen extends Canvas implements GameListener {
                     .findFirst()
                     .orElse(null);
 
-            if (animation == null) {
-                batch.drawImage(customer.getSprite(), x, y, 160, 350);
+                if (animation == null) {
+                    batch.drawImage(customer.getSprite(), x, y, 160, 350);
+                }
             }
         }
+
         for (CustomerAppears animation : policeAnimations) {
             animation.update();
 
             batch.save();
             batch.setGlobalAlpha(animation.getOpacity());
-
             batch.drawImage(
                 animation.getCustomerImage(),
                 animation.getX(),
@@ -210,26 +211,24 @@ public class GameScreen extends Canvas implements GameListener {
                 160,
                 350
             );
+            batch.restore();
+        }
 
+        for (CustomerAppears animation : customerAnimations) {
+            animation.update();
+
+            batch.save();
+            batch.setGlobalAlpha(animation.getOpacity());
+            batch.drawImage(
+                animation.getCustomerImage(),
+                animation.getX(),
+                animation.getY(),
+                160,
+                350
+            );
             batch.restore();
         }
     }
-
-    for (CustomerAppears animation : customerAnimations) {
-        animation.update();
-
-        batch.save();
-        batch.setGlobalAlpha(animation.getOpacity());
-        batch.drawImage(
-            animation.getCustomerImage(),
-            animation.getX(),
-            animation.getY(),
-            160,
-            350
-        );
-        batch.restore();
-    }
-}
 
     private void resizeGame(Pane gamePane, Pane root) {
         double scaleX = root.getWidth() / WIDTH;
@@ -495,11 +494,11 @@ public class GameScreen extends Canvas implements GameListener {
 
     private void installKeys(Scene scene) {
         scene.setOnKeyPressed(event -> {
-        if (event.getCode() == KeyCode.SPACE) {
-            if (!session.isPoliceRaidActive()) {
-                pause();
-            }
-        } else if (event.getCode() == KeyCode.E) {
+            if (event.getCode() == KeyCode.SPACE) {
+                if (!session.isPoliceRaidActive()) {
+                    pause();
+                }
+            } else if (event.getCode() == KeyCode.E) {
                 session.spawnChild();
             } else if (event.getCode() == KeyCode.N) {
                 session.skipPhase();
@@ -535,8 +534,8 @@ public class GameScreen extends Canvas implements GameListener {
                 if (customer.canBeServed()) {
                     drinkBatch.drawImage(orderBubble, 300 + seat * 240, 170, 180, 260);
                     drawDrink(customer.getOrder(), centerX, 190, 1);
-                } else {
-                    drawDrink(customer.getOrder(), centerX, 630, 0.6);
+                } else if (customer.getServedPreparation() != null) {
+                    drawPreparation(customer.getServedPreparation(), centerX, 675, 0.6);
                 }
             }
         }
@@ -625,80 +624,155 @@ public class GameScreen extends Canvas implements GameListener {
         app.showSummary(session);
     }
 
-    private void drawPreparation(Preparation preparation, double centerX, double centerY) {
-        double width = 100;
-        if (preparation.getGlass() == Glass.WINE_GLASS) {
-            width = 80;
-        } else if (preparation.getGlass() == Glass.HIGHBALL) {
-            width = 60;
-        }
-
-        double height = 150;
-        double x = centerX - width / 2;
-        double y = centerY - height / 2;
-        if (preparation.getGlass() == null) {
+    private void drawPreparation(Preparation preparation, double centerX, double centerY, double scale) {
+        Glass glass = preparation.getGlass();
+        if (glass == null) {
             return;
         }
-        Ingredient mainAlcohol = preparation.getMainAlcohol();
 
-        if (mainAlcohol != null) {
-            switch (mainAlcohol) {
-                case BEER:
-                    drinkBatch.drawImage(beer, x, y, width, height);
-                    break;
+        double width = 100 * scale;
+        if (glass == Glass.WINE_GLASS) {
+            width = 80 * scale;
+        } else if (glass == Glass.HIGHBALL) {
+            width = 60 * scale;
+        }
+        double height = 150 * scale;
+        double x = centerX - width / 2;
+        double y = centerY - height / 2;
 
-                case WHITE_WINE:
-                    drinkBatch.drawImage(wine, x, y, width, height);
-                    break;
+        ArrayList<Ingredient> liquids = getLiquids(preparation.getIngredients());
+        Drink match = findMatchingDrink(preparation);
 
-                case VODKA:
-                    if (preparation.getGlass() == Glass.HIGHBALL) {
-                        drinkBatch.drawImage(pinkCapeCod, x, y, width, height);
-                    } else if (preparation.getGlass() == Glass.MARTINI) {
-                        drinkBatch.drawImage(cosmopolitan, x, y, width, height);
-                    }
-                    break;
-
-                case GIN:
-                    if (preparation.getGlass() == Glass.HIGHBALL) {
-                        drinkBatch.drawImage(ginTonic, x, y, width, height);
-                    } else if (preparation.getGlass() == Glass.MARTINI) {
-                        drinkBatch.drawImage(cloverClub, x, y, width, height);
-                    }
-                    break;
-
-                case TEQUILA:
-                    if (preparation.getGlass() == Glass.HIGHBALL) {
-                        drinkBatch.drawImage(tequilaTonic, x, y, width, height);
-                    } else if (preparation.getGlass() == Glass.MARTINI) {
-                        drinkBatch.drawImage(margarita, x, y, width, height);
-                    }
-                    break;
-
-                default:
-                    break;
+        if (!liquids.isEmpty()) {
+            if (match != null && (glass == Glass.PINT || glass == Glass.WINE_GLASS)) {
+                drinkBatch.drawImage(getLiquidImage(glass), x, y, width, height);
+            } else {
+                Color color;
+                if (match != null) {
+                    color = getDrinkColor(match.getName());
+                } else {
+                    color = mixColors(liquids);
+                }
+                drinkBatch.drawImage(getTintedLiquid(glass, color), x, y, width, height);
             }
         }
-        switch (preparation.getGlass()) {
+
+        switch (glass) {
             case HIGHBALL:
                 drinkBatch.drawImage(highballGlass, x, y, width, height);
                 break;
-                
             case MARTINI:
                 drinkBatch.drawImage(martiniGlass, x, y, width, height);
                 break;
-
             case PINT:
                 drinkBatch.drawImage(beerGlass, x, y, width, height);
-                if (mainAlcohol == Ingredient.BEER) {
+                if (match != null) {
                     drinkBatch.drawImage(beerFoam, x, y, width, height);
                 }
                 break;
-
             case WINE_GLASS:
                 drinkBatch.drawImage(wineGlass, x, y, width, height);
                 break;
         }
+    }
+
+    private ArrayList<Ingredient> getLiquids(ArrayList<Ingredient> ingredients) {
+        ArrayList<Ingredient> liquids = new ArrayList<>();
+        for (Ingredient ingredient : ingredients) {
+            if (ingredient.isLiquid()) {
+                liquids.add(ingredient);
+            }
+        }
+        return liquids;
+    }
+
+    private Drink findMatchingDrink(Preparation preparation) {
+        ArrayList<Ingredient> made = getLiquids(preparation.getIngredients());
+        for (Drink drink : session.getRecipeBook().getDrinks()) {
+            if (drink.getGlass() == preparation.getGlass()
+                    && getLiquids(drink.getIngredients()).equals(made)) {
+                return drink;
+            }
+        }
+        return null;
+    }
+
+    private Image getLiquidImage(Glass glass) {
+        if (glass == Glass.PINT) {
+            return beer;
+        } else if (glass == Glass.WINE_GLASS) {
+            return wine;
+        } else if (glass == Glass.HIGHBALL) {
+            return highball;
+        }
+        return martini;
+    }
+
+    private Color getDrinkColor(String name) {
+        switch (name) {
+            case "Gin Tonic":
+                return Color.web("#00c7e6");
+            case "Tequila Tonic":
+                return Color.web("#ff9100");
+            case "Pink Cape Cod":
+                return Color.web("#FF7EB9");
+            case "Margarita":
+                return Color.web("#9BE15D");
+            case "Clover Club":
+                return Color.web("#cd07ff");
+            case "Cosmopolitan":
+                return Color.web("#D7263D");
+        }
+        return Color.WHITE;
+    }
+
+    private Color getIngredientColor(Ingredient ingredient) {
+        switch (ingredient) {
+            case VODKA:
+                return Color.web("#e8f4ff");
+            case GIN:
+                return Color.web("#dff7f2");
+            case TEQUILA:
+                return Color.web("#f5d76e");
+            case TRIPLE_SEC:
+                return Color.web("#ffa733");
+            case RASPBERRY_SYRUP:
+                return Color.web("#e0115f");
+            case TONIC:
+                return Color.web("#c9f0ff");
+            case LEMON_JUICE:
+                return Color.web("#f7f06d");
+            case CRANBERRY_JUICE:
+                return Color.web("#b5122e");
+            case BEER:
+                return Color.web("#f2b134");
+            case WHITE_WINE:
+                return Color.web("#f3e9a6");
+            default:
+                return Color.WHITE;
+        }
+    }
+
+    private Color mixColors(ArrayList<Ingredient> liquids) {
+        double red = 0;
+        double green = 0;
+        double blue = 0;
+        for (Ingredient ingredient : liquids) {
+            Color color = getIngredientColor(ingredient);
+            red = red + color.getRed();
+            green = green + color.getGreen();
+            blue = blue + color.getBlue();
+        }
+        int count = liquids.size();
+        return Color.color(red / count, green / count, blue / count);
+    }
+
+    private Image getTintedLiquid(Glass glass, Color color) {
+        String key = glass + color.toString();
+        if (!tintCache.containsKey(key)) {
+            tintCache.put(key, tintImage(getLiquidImage(glass), color));
+        }
+        return tintCache.get(key);
     }
 
     public void render() {
@@ -745,6 +819,6 @@ public class GameScreen extends Canvas implements GameListener {
         handsBatch.rotate(angle);
         handsBatch.drawImage(arm, -2390, 170, 2560, -320);
         handsBatch.restore();
-        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY());
+        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
     }
 }
