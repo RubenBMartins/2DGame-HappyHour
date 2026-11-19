@@ -524,6 +524,82 @@ public class GameScreen extends Canvas{
         app.showSummary(session);
     }
 
+    private void drawPreparation(Preparation preparation, double centerX, double centerY) {
+        double width = 100;
+        if (preparation.getGlass() == Glass.WINE_GLASS) {
+            width = 80;
+        } else if (preparation.getGlass() == Glass.HIGHBALL) {
+            width = 60;
+        }
+
+        double height = 150;
+        double x = centerX - width / 2;
+        double y = centerY - height / 2;
+        if (preparation.getGlass() == null) {
+            return;
+        }
+        Ingredient mainAlcohol = preparation.getMainAlcohol();
+
+        if (mainAlcohol != null) {
+            switch (mainAlcohol) {
+                case BEER:
+                    drinkBatch.drawImage(beer, x, y, width, height);
+                    break;
+
+                case WHITE_WINE:
+                    drinkBatch.drawImage(wine, x, y, width, height);
+                    break;
+
+                case VODKA:
+                    if (preparation.getGlass() == Glass.HIGHBALL) {
+                        drinkBatch.drawImage(pinkCapeCod, x, y, width, height);
+                    } else if (preparation.getGlass() == Glass.MARTINI) {
+                        drinkBatch.drawImage(cosmopolitan, x, y, width, height);
+                    }
+                    break;
+
+                case GIN:
+                    if (preparation.getGlass() == Glass.HIGHBALL) {
+                        drinkBatch.drawImage(ginTonic, x, y, width, height);
+                    } else if (preparation.getGlass() == Glass.MARTINI) {
+                        drinkBatch.drawImage(cloverClub, x, y, width, height);
+                    }
+                    break;
+
+                case TEQUILA:
+                    if (preparation.getGlass() == Glass.HIGHBALL) {
+                        drinkBatch.drawImage(tequilaTonic, x, y, width, height);
+                    } else if (preparation.getGlass() == Glass.MARTINI) {
+                        drinkBatch.drawImage(margarita, x, y, width, height);
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        switch (preparation.getGlass()) {
+            case HIGHBALL:
+                drinkBatch.drawImage(highballGlass, x, y, width, height);
+                break;
+                
+            case MARTINI:
+                drinkBatch.drawImage(martiniGlass, x, y, width, height);
+                break;
+
+            case PINT:
+                drinkBatch.drawImage(beerGlass, x, y, width, height);
+                if (mainAlcohol == Ingredient.BEER) {
+                    drinkBatch.drawImage(beerFoam, x, y, width, height);
+                }
+                break;
+
+            case WINE_GLASS:
+                drinkBatch.drawImage(wineGlass, x, y, width, height);
+                break;
+        }
+    }
+
     public void render() {
         updateHud();
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
@@ -568,5 +644,6 @@ public class GameScreen extends Canvas{
         handsBatch.rotate(angle);
         handsBatch.drawImage(arm, -2390, 170, 2560, -320);
         handsBatch.restore();
+        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY());
     }
 }
