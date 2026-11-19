@@ -13,6 +13,7 @@ public class CustomerAppears {
     private int seat;
     private boolean departing;
     private Image customerImage;
+    private long startDelay;
 
     public CustomerAppears(int seat, double x, double y, Customer customer) {
         this.x = x;
@@ -33,9 +34,20 @@ public class CustomerAppears {
         return animation;
     }
 
+    public CustomerAppears(int seat, double x, double y, Image image, long startDelay) {
+        this.x = x;
+        this.y = y + 40;
+        this.startY = this.y;
+        this.creationTime = System.currentTimeMillis();
+        this.seat = seat;
+        this.customerImage = image;
+        this.opacity = 0;
+        this.startDelay = startDelay;
+    }
+
     public void update() {
         double age = getAge();
-        double progress = Math.min(age / 500.0, 1.0);
+        double progress = Math.max(0, Math.min(age / 500.0, 1.0));
         double easedProgress = 1 - Math.pow(1 - progress, 3);
 
         if (departing) {
@@ -68,6 +80,6 @@ public class CustomerAppears {
     }
 
     public long getAge() {
-        return System.currentTimeMillis() - creationTime;
+        return System.currentTimeMillis() - creationTime - startDelay;
     }
 }

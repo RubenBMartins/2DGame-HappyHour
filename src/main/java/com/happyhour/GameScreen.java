@@ -83,16 +83,10 @@ public class GameScreen extends Canvas implements GameListener {
     private ImageView recipeView;
     private List<Explosion> explosions = new ArrayList<>();
     private ArrayList<CustomerAppears> customerAnimations = new ArrayList<>();
+    private List<CustomerAppears> policeAnimations = new ArrayList<>();
+    private Image policeImage;
 
     /* Pour l'instant, on n'utilise qu'une seule méthode, n'ayant pas besoin des autres, je les initialise ici pour ne pas avoir d'erreurs */
-
-    @Override
-        public void onPoliceRaid() {
-    }
-
-    @Override
-        public void onEveningOver(boolean defeat) {
-    }
 
     @Override
         public void onPhaseChanged(Phase phase) {
@@ -140,7 +134,23 @@ public class GameScreen extends Canvas implements GameListener {
         handsCanvas.setMouseTransparent(true);
         drinksCanvas.setMouseTransparent(true);
         kickCanvas.setMouseTransparent(true);
-        
+        policeImage = new Image(getClass().getResourceAsStream("/images/police.png"),160, 350, true, false);
+    }
+
+    @Override
+    public void onEveningOver(boolean defeat) {
+        gameLoop.stop();
+        endGame(session);
+    }
+
+    @Override
+    public void onPoliceRaid() {
+        for (int i = 0; i < 6; i++) {
+            double x = 310 + (i * 240);
+            double y = 390;
+            CustomerAppears animation = new CustomerAppears(i, x, y, policeImage, i * 83L);
+            policeAnimations.add(animation);
+        }
     }
 
     @Override
@@ -165,27 +175,43 @@ public class GameScreen extends Canvas implements GameListener {
 
 
 
-private void renderCustomers() {
-    customerAnimations.removeIf(animation -> animation.getAge() >= 500);
+    private void renderCustomers() {
+        customerAnimations.removeIf(animation -> animation.getAge() >= 500);
 
-    for (int i = 0; i < 6; i++) {
-        Customer customer = session.getCustomer(i);
+        for (int i = 0; i < 6; i++) {
+            Customer customer = session.getCustomer(i);
 
-        if (customer != null) {
-            double x = 310 + (i * 240);
-            double y = 390;
-            
-            int currentSeat = i;
-
-            CustomerAppears animation = customerAnimations.stream()
-                .filter(a -> a.getSeat() == currentSeat)
-                .filter(a -> a.getAge() < 500)
-                .findFirst()
-                .orElse(null);
+            if (customer != null) {
+                double x = 310 + (i * 240);
+                double y = 390;
                 
+                int currentSeat = i;
+
+                CustomerAppears animation = customerAnimations.stream()
+                    .filter(a -> a.getSeat() == currentSeat)
+                    .filter(a -> a.getAge() < 500)
+                    .findFirst()
+                    .orElse(null);
+
             if (animation == null) {
                 batch.drawImage(customer.getSprite(), x, y, 160, 350);
             }
+        }
+        for (CustomerAppears animation : policeAnimations) {
+            animation.update();
+
+            batch.save();
+            batch.setGlobalAlpha(animation.getOpacity());
+
+            batch.drawImage(
+                animation.getCustomerImage(),
+                animation.getX(),
+                animation.getY(),
+                160,
+                350
+            );
+
+            batch.restore();
         }
     }
 
@@ -469,9 +495,11 @@ private void renderCustomers() {
 
     private void installKeys(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.SPACE) {
+        if (event.getCode() == KeyCode.SPACE) {
+            if (!session.isPoliceRaidActive()) {
                 pause();
-            } else if (event.getCode() == KeyCode.E) {
+            }
+        } else if (event.getCode() == KeyCode.E) {
                 session.spawnChild();
             } else if (event.getCode() == KeyCode.N) {
                 session.skipPhase();

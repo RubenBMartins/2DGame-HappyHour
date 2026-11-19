@@ -39,6 +39,10 @@ public class GameSession {
     private String feedback = null;
     private int feedbackGrade = 0;
     private double feedbackTimer = 0;
+    private boolean policeRaidInProgress = false;
+    private double policeRaidTimer = 0;
+    private boolean policeArrivalInProgress = false;
+    private double policeArrivalTimer = 0;
 
     public GameSession() {
         nextSpawnDelay = randomBetween(GameConfig.FIRST_CUSTOMER_MIN, GameConfig.FIRST_CUSTOMER_MAX);
@@ -49,14 +53,23 @@ public class GameSession {
     }
 
     public void chooseGlass(Glass glass) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         preparation.chooseGlass(glass);
     }
 
     public void addIngredient(Ingredient ingredient) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         preparation.addIngredient(ingredient);
     }
 
     public void useTechnique(Technique technique) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         preparation.useTechnique(technique);
     }
 
@@ -75,7 +88,14 @@ public class GameSession {
         }
     }
 
+    public boolean isPoliceRaidActive() {
+        return policeRaidInProgress || policeArrivalInProgress;
+    }
+
     public void serve(int seat) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         Customer customer = seats[seat];
         if (over || closed || paused || customer == null || !customer.canBeServed()) {
             return;
@@ -126,6 +146,9 @@ public class GameSession {
     }
 
     public void kick(int seat) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         Customer customer = seats[seat];
         if (over || paused || customer == null) {
             return;
@@ -139,12 +162,15 @@ public class GameSession {
     }
 
     public void togglePause() {
-        if (!over) {
+        if (!over && !isPoliceRaidActive()) {
             paused = !paused;
         }
     }
 
     public void spawnChild() {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         int seat = findFreeSeat();
         if (!over && !closed && seat != -1) {
             Customer child = new ChildCustomer(null);
@@ -154,6 +180,9 @@ public class GameSession {
     }
 
     public void spawnCustomer() {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         int seat = findFreeSeat();
         if (!over && !closed && seat != -1) {
             Customer customer = factory.createCustomer(elapsed, phase != Phase.OPENING);
@@ -163,6 +192,9 @@ public class GameSession {
     }
 
     public void skipPhase() {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         if (phase == Phase.OPENING) {
             elapsed = GameConfig.HAPPY_HOUR_START;
         } else if (phase == Phase.HAPPY_HOUR) {
@@ -173,7 +205,37 @@ public class GameSession {
     }
 
     public void update(double deltaTime) {
-        if (over || paused) {
+        if (over) {
+            return;
+        }
+
+        if (policeRaidInProgress) {
+            policeRaidTimer -= deltaTime;
+
+            if (policeRaidTimer <= 0) {
+                policeRaidInProgress = false;
+                policeArrivalInProgress = true;
+
+                for (GameListener listener : listeners) {
+                    listener.onPoliceRaid();
+                }
+
+                policeArrivalTimer = 2.915;
+            }
+            return;
+        }
+
+        if (policeArrivalInProgress) {
+            policeArrivalTimer -= deltaTime;
+
+            if (policeArrivalTimer <= 0) {
+                policeArrivalInProgress = false;
+                endEvening(true);
+            }
+            return;
+        }
+
+        if (paused) {
             return;
         }
 
@@ -284,15 +346,14 @@ public class GameSession {
     }
 
     private void policeRaid() {
-        for (int i = 0; i < GameConfig.SEATS; i++) {
-            if (seats[i] != null) {
-                freeSeat(i);
-            }
+        if (isPoliceRaidActive()) {
+            return;
         }
-        for (GameListener listener : listeners) {
-            listener.onPoliceRaid();
-        }
-        endEvening(true);
+
+        policeRaidInProgress = true;
+        policeRaidTimer = 0.5;
+
+        removeAllCustomers();
     }
 
     private void loseCustomer(int seat) {
