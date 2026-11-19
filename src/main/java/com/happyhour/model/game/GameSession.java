@@ -67,6 +67,14 @@ public class GameSession {
         }
     }
 
+    private void removeAllCustomers() {
+        for (int i = 0; i < GameConfig.SEATS; i++) {
+            if (seats[i] != null) {
+                freeSeat(i);
+            }
+        }
+    }
+
     public void serve(int seat) {
         Customer customer = seats[seat];
         if (over || closed || paused || customer == null || !customer.canBeServed()) {
@@ -296,10 +304,13 @@ public class GameSession {
     }
 
     private void freeSeat(int seat) {
-        seats[seat] = null;
-        for (GameListener listener : listeners) {
-            listener.onCustomerLeft(seat);
-        }
+        if (seats[seat] != null) {
+            Customer customer = this.getCustomer(seat);
+            seats[seat] = null;
+            for (GameListener listener : listeners) {
+                listener.onCustomerLeft(seat, customer);
+            }
+        }    
     }
 
     private int findFreeSeat() {

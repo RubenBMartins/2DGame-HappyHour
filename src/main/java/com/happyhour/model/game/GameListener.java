@@ -7,7 +7,7 @@ public interface GameListener {
     
     void onCustomerArrived(int seat, Customer customer);
 
-    void onCustomerLeft(int seat);
+    void onCustomerLeft(int seat, Customer customer);
 
     void onPoliceRaid();
 

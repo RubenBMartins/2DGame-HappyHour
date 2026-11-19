@@ -9,7 +9,9 @@ import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
 import com.happyhour.model.drink.Preparation;
 import com.happyhour.model.drink.Technique;
+import com.happyhour.model.game.GameListener;
 import com.happyhour.model.game.GameSession;
+import com.happyhour.model.game.Phase;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -33,7 +35,7 @@ import javafx.stage.Stage;
 import javafx.scene.transform.Scale;
 import java.util.List;
 
-public class GameScreen extends Canvas{
+public class GameScreen extends Canvas implements GameListener {
     public static final int WIDTH = 1980;
     public static final int HEIGHT = 1080;
     private Image table;
@@ -80,6 +82,25 @@ public class GameScreen extends Canvas{
     private Label feedbackLabel;
     private ImageView recipeView;
     private List<Explosion> explosions = new ArrayList<>();
+    private ArrayList<CustomerAppears> customerAnimations = new ArrayList<>();
+
+    /* Pour l'instant, on n'utilise qu'une seule méthode, n'ayant pas besoin des autres, je les initialise ici pour ne pas avoir d'erreurs */
+
+    @Override
+        public void onPoliceRaid() {
+    }
+
+    @Override
+        public void onEveningOver(boolean defeat) {
+    }
+
+    @Override
+        public void onPhaseChanged(Phase phase) {
+    }
+
+    @Override
+        public void onScoreChanged(double tips) {
+    }
 
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
@@ -121,18 +142,69 @@ public class GameScreen extends Canvas{
         kickCanvas.setMouseTransparent(true);
         
     }
-    private void renderCustomers() {
-        for (int i = 0; i < 6; i++) {
-            Customer customer = session.getCustomer(i);
 
-            if (customer != null) {
-                double x = 310 + (i * 240);
-                double y = 390;
+    @Override
+    public void onCustomerArrived(int seat, Customer customer) {
+        double x = 310 + (seat * 240);
+        double y = 390;
 
+        customerAnimations.add(
+            new CustomerAppears(seat, x, y, customer)
+        );
+    }
+
+    @Override
+    public void onCustomerLeft(int seat, Customer customer) {
+        double x = 310 + (seat * 240);
+        double y = 390;
+
+        customerAnimations.add(
+            CustomerAppears.departure(seat, customer, x, y)
+        );
+    }
+
+
+
+private void renderCustomers() {
+    customerAnimations.removeIf(animation -> animation.getAge() >= 500);
+
+    for (int i = 0; i < 6; i++) {
+        Customer customer = session.getCustomer(i);
+
+        if (customer != null) {
+            double x = 310 + (i * 240);
+            double y = 390;
+            
+            int currentSeat = i;
+
+            CustomerAppears animation = customerAnimations.stream()
+                .filter(a -> a.getSeat() == currentSeat)
+                .filter(a -> a.getAge() < 500)
+                .findFirst()
+                .orElse(null);
+                
+            if (animation == null) {
                 batch.drawImage(customer.getSprite(), x, y, 160, 350);
             }
         }
     }
+
+    for (CustomerAppears animation : customerAnimations) {
+        animation.update();
+
+        batch.save();
+        batch.setGlobalAlpha(animation.getOpacity());
+        batch.drawImage(
+            animation.getCustomerImage(),
+            animation.getX(),
+            animation.getY(),
+            160,
+            350
+        );
+        batch.restore();
+    }
+}
+
     private void resizeGame(Pane gamePane, Pane root) {
         double scaleX = root.getWidth() / WIDTH;
         double scaleY = root.getHeight() / HEIGHT;
@@ -297,6 +369,7 @@ public class GameScreen extends Canvas{
         session = new GameSession();
 
         gameLoop = new GameLoop(session, this);
+        session.addListener(this);
         gameLoop.start();
 
         Scene scene = stage.getScene();
