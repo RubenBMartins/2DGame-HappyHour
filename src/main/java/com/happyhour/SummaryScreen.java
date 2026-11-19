@@ -44,6 +44,8 @@ public class SummaryScreen extends Screen {
         TextField nameField = createTextField("Ton pseudo");
 
         Button saveButton = createButton("Enregistrer");
+        Button skipButton = createSecondaryButton("Passer");
+        skipButton.setOnAction(event -> app.showMenu());
         saveButton.setOnAction(event -> {
             String name = nameField.getText();
             if (name.isEmpty()) {
@@ -53,7 +55,7 @@ public class SummaryScreen extends Screen {
             app.showScores();
         });
 
-        root.getChildren().addAll(nameField, saveButton);
+        root.getChildren().addAll(nameField, saveButton, skipButton);
         display(stage, root);
     }
 }
