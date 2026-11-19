@@ -16,10 +16,16 @@ public class Preparation {
     }
 
     public void addIngredient(Ingredient ingredient) {
+        if (glass == null) {
+            return;
+        }
         ingredients.add(ingredient);
     }
 
     public void useTechnique(Technique technique) {
+        if (glass == null) {
+            return;
+        }
         this.technique = technique;
     }
 
