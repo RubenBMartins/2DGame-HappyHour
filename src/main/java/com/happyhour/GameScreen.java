@@ -88,7 +88,7 @@ public class GameScreen extends Canvas{
         table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,540,true, false);
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),1360, 120, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
-        kick = new Image(getClass().getResourceAsStream("/images/kick.png"),200, 200, true, false);
+        kick = new Image(getClass().getResourceAsStream("/images/kick.png"),400, 400, true, false);
         
         orderBubble = new Image(getClass().getResourceAsStream("/images/orderBubble.png"),180, 260, true, false);
         beerFoam = new Image(getClass().getResourceAsStream("/images/beerFoam.png"),100, 150, true, false);
@@ -212,9 +212,9 @@ public class GameScreen extends Canvas{
     }
 
     public void kickBoom(double x, double y) {
-        kickBatch.drawImage(kick, x, y, 200, 200);
+        kickBatch.drawImage(kick, x-90, y-50, 400, 400);
         delay.setOnFinished(event -> {
-            kickBatch.clearRect(x, y, 200, 200);
+            kickBatch.clearRect(x-90, y-50, 400, 400);
         });
         delay.playFromStart();
     }
@@ -318,12 +318,12 @@ public class GameScreen extends Canvas{
             melvin.updateMouse(point.getX(), point.getY());
         });
 
-        setupSeat(seat1box, 0, 310);
-        setupSeat(seat2box, 1, 510);
-        setupSeat(seat3box, 2, 750);
-        setupSeat(seat4box, 3, 990);
-        setupSeat(seat5box, 4, 1230);
-        setupSeat(seat6box, 5, 1470);
+        setupSeat(seat1box, 0, 280);
+        setupSeat(seat2box, 1, 520);
+        setupSeat(seat3box, 2, 760);
+        setupSeat(seat4box, 3, 1000);
+        setupSeat(seat5box, 4, 1240);
+        setupSeat(seat6box, 5, 1480);
         installKeys(scene);
     }
 
