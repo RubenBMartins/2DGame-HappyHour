@@ -128,6 +128,9 @@ public class GameSession {
         double tip = customer.computeTip(order.getBaseTip(grade), speedBonus);
         double price = order.getPrice() * grade / 10.0;
         register.recordSale(order, price, tip);
+        for (GameListener listener : listeners) {
+            listener.onCustomerServed(seat, price + tip);
+        }
         customer.setServedPreparation(served);
         customer.serve();
         for (GameListener listener : listeners) {
