@@ -1,6 +1,8 @@
 package com.happyhour;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.Customer;
@@ -33,7 +35,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.transform.Scale;
-import java.util.List;
 
 public class GameScreen extends Canvas implements GameListener {
     public static final int WIDTH = 1980;
@@ -85,9 +86,7 @@ public class GameScreen extends Canvas implements GameListener {
     private ArrayList<CustomerAppears> customerAnimations = new ArrayList<>();
     private List<CustomerAppears> policeAnimations = new ArrayList<>();
     private Image policeImage;
-    private Image cachedLiquid;
-    private Image cachedSource;
-    private Color cachedColor;
+    private HashMap<String, Image> tintCache = new HashMap<>();
 
     /* Pour l'instant, on n'utilise qu'une seule méthode, n'ayant pas besoin des autres, je les initialise ici pour ne pas avoir d'erreurs */
 
@@ -535,8 +534,8 @@ public class GameScreen extends Canvas implements GameListener {
                 if (customer.canBeServed()) {
                     drinkBatch.drawImage(orderBubble, 300 + seat * 240, 170, 180, 260);
                     drawDrink(customer.getOrder(), centerX, 190, 1);
-                } else {
-                    drawDrink(customer.getOrder(), centerX, 630, 0.6);
+                } else if (customer.getServedPreparation() != null) {
+                    drawPreparation(customer.getServedPreparation(), centerX, 675, 0.6);
                 }
             }
         }
@@ -625,19 +624,19 @@ public class GameScreen extends Canvas implements GameListener {
         app.showSummary(session);
     }
 
-    private void drawPreparation(Preparation preparation, double centerX, double centerY) {
+    private void drawPreparation(Preparation preparation, double centerX, double centerY, double scale) {
         Glass glass = preparation.getGlass();
         if (glass == null) {
             return;
         }
 
-        double width = 100;
+        double width = 100 * scale;
         if (glass == Glass.WINE_GLASS) {
-            width = 80;
+            width = 80 * scale;
         } else if (glass == Glass.HIGHBALL) {
-            width = 60;
+            width = 60 * scale;
         }
-        double height = 150;
+        double height = 150 * scale;
         double x = centerX - width / 2;
         double y = centerY - height / 2;
 
@@ -645,9 +644,8 @@ public class GameScreen extends Canvas implements GameListener {
         Drink match = findMatchingDrink(preparation);
 
         if (!liquids.isEmpty()) {
-            Image liquidImage = getLiquidImage(glass);
             if (match != null && (glass == Glass.PINT || glass == Glass.WINE_GLASS)) {
-                drinkBatch.drawImage(liquidImage, x, y, width, height);
+                drinkBatch.drawImage(getLiquidImage(glass), x, y, width, height);
             } else {
                 Color color;
                 if (match != null) {
@@ -655,7 +653,7 @@ public class GameScreen extends Canvas implements GameListener {
                 } else {
                     color = mixColors(liquids);
                 }
-                drinkBatch.drawImage(getTintedLiquid(liquidImage, color), x, y, width, height);
+                drinkBatch.drawImage(getTintedLiquid(glass, color), x, y, width, height);
             }
         }
 
@@ -769,13 +767,12 @@ public class GameScreen extends Canvas implements GameListener {
         return Color.color(red / count, green / count, blue / count);
     }
 
-    private Image getTintedLiquid(Image source, Color color) {
-        if (source != cachedSource || !color.equals(cachedColor)) {
-            cachedLiquid = tintImage(source, color);
-            cachedSource = source;
-            cachedColor = color;
+    private Image getTintedLiquid(Glass glass, Color color) {
+        String key = glass + color.toString();
+        if (!tintCache.containsKey(key)) {
+            tintCache.put(key, tintImage(getLiquidImage(glass), color));
         }
-        return cachedLiquid;
+        return tintCache.get(key);
     }
 
     public void render() {
@@ -822,6 +819,6 @@ public class GameScreen extends Canvas implements GameListener {
         handsBatch.rotate(angle);
         handsBatch.drawImage(arm, -2390, 170, 2560, -320);
         handsBatch.restore();
-        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY());
+        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
     }
 }
