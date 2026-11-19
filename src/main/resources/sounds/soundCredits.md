@@ -25,4 +25,5 @@ https://opengameart.org/content/race-start-countdown
 
 music.mp3, musique du jeu :
 
-[Crédits à venir]
+Théophile Bonnamour
+https://soundcloud.com/skybassman-b
