@@ -3,6 +3,7 @@ package com.happyhour.model.game;
 import java.util.ArrayList;
 import java.util.Random;
 
+import com.happyhour.SoundManager;
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.ChildCustomer;
 import com.happyhour.model.customer.Customer;
@@ -57,6 +58,7 @@ public class GameSession {
             return;
         }
         preparation.chooseGlass(glass);
+        SoundManager.play("bottle");
     }
 
     public void addIngredient(Ingredient ingredient) {
@@ -64,6 +66,7 @@ public class GameSession {
             return;
         }
         preparation.addIngredient(ingredient);
+        SoundManager.play("water");
     }
 
     public void useTechnique(Technique technique) {
@@ -71,6 +74,7 @@ public class GameSession {
             return;
         }
         preparation.useTechnique(technique);
+        SoundManager.play("bottle");
     }
 
     public void placeCustomer(int seat, Customer customer) {
@@ -156,6 +160,7 @@ public class GameSession {
             return;
         }
         customer.kick();
+        SoundManager.play("kick");
         if (customer.isChild()) {
             freeSeat(seat);
         } else {
@@ -356,6 +361,7 @@ public class GameSession {
         policeRaidTimer = 0.5;
 
         removeAllCustomers();
+        SoundManager.play("siren");
     }
 
     private void loseCustomer(int seat) {

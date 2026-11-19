@@ -19,6 +19,11 @@ public class HappyHourApp extends Application {
         stage.setMaximized(true);
 
         music = new MusicPlayer("/sounds/music.mp3");
+        SoundManager.load("kick", "kick.mp3");
+        SoundManager.load("bottle", "bottle.mp3");
+        SoundManager.load("water", "water.mp3");
+        SoundManager.load("countdown", "countdown.mp3");
+        SoundManager.load("siren", "siren.mp3");
         music.play();
 
         showMenu();
