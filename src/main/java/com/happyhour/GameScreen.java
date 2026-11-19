@@ -87,6 +87,7 @@ public class GameScreen extends Canvas implements GameListener {
     private List<CustomerAppears> policeAnimations = new ArrayList<>();
     private Image policeImage;
     private HashMap<String, Image> tintCache = new HashMap<>();
+    private int lastCountdownSecond = -1;
 
     /* Pour l'instant, on n'utilise qu'une seule méthode, n'ayant pas besoin des autres, je les initialise ici pour ne pas avoir d'erreurs */
 
@@ -265,7 +266,14 @@ public class GameScreen extends Canvas implements GameListener {
         }
         int minutes = (int) remaining / 60;
         int seconds = (int) remaining % 60;
+        int secondsLeft = (int) Math.ceil(remaining);
 
+        if (secondsLeft <= 10 && secondsLeft > 0
+                && secondsLeft != lastCountdownSecond) {
+
+            SoundManager.play("countdown");
+            lastCountdownSecond = secondsLeft;
+        }
         timeLabel.setText("TEMPS " + String.format("%d:%02d", minutes, seconds));
         moneyLabel.setText("CAISSE " + String.format("%.0f €", session.getRegister().getTotal()));
         lostLabel.setText("CLIENTS PERDUS " + session.getLostCustomers() + "/" + GameConfig.MAX_LOST);
