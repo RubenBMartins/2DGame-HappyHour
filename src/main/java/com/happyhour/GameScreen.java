@@ -553,12 +553,18 @@ public class GameScreen extends Canvas implements GameListener {
 
         switch (order.getGlass()) {
             case PINT:
-                drinkBatch.drawImage(beer, x, y, width, height);
+                drinkBatch.drawImage(
+                    tintImage(beer, Color.web("#f2b134")),
+                    x, y, width, height
+                );
                 drinkBatch.drawImage(beerGlass, x, y, width, height);
                 drinkBatch.drawImage(beerFoam, x, y, width, height);
                 break;
             case WINE_GLASS:
-                drinkBatch.drawImage(wine, x, y, width, height);
+                drinkBatch.drawImage(
+                    tintImage(wine, Color.web("#f3e9a6")),
+                    x, y, width, height
+                );
                 drinkBatch.drawImage(wineGlass, x, y, width, height);
                 break;
             case HIGHBALL:
@@ -624,57 +630,81 @@ public class GameScreen extends Canvas implements GameListener {
         app.showSummary(session);
     }
 
-    private void drawPreparation(Preparation preparation, double centerX, double centerY, double scale) {
-        Glass glass = preparation.getGlass();
-        if (glass == null) {
-            return;
-        }
+   
+private void drawPreparation(Preparation preparation, double centerX, double centerY, double scale) {
+    Glass glass = preparation.getGlass();
 
-        double width = 100 * scale;
-        if (glass == Glass.WINE_GLASS) {
-            width = 80 * scale;
-        } else if (glass == Glass.HIGHBALL) {
-            width = 60 * scale;
-        }
-        double height = 150 * scale;
-        double x = centerX - width / 2;
-        double y = centerY - height / 2;
+    if (glass == null) {
+        return;
+    }
 
-        ArrayList<Ingredient> liquids = getLiquids(preparation.getIngredients());
-        Drink match = findMatchingDrink(preparation);
+    double width = 100 * scale;
+    if (glass == Glass.WINE_GLASS) {
+        width = 80 * scale;
+    } else if (glass == Glass.HIGHBALL) {
+        width = 60 * scale;
+    }
 
-        if (!liquids.isEmpty()) {
-            if (match != null && (glass == Glass.PINT || glass == Glass.WINE_GLASS)) {
-                drinkBatch.drawImage(getLiquidImage(glass), x, y, width, height);
+    double height = 150 * scale;
+    double x = centerX - width / 2;
+    double y = centerY - height / 2;
+
+    ArrayList<Ingredient> liquids = getLiquids(preparation.getIngredients());
+    Drink match = findMatchingDrink(preparation);
+
+    if (!liquids.isEmpty()) {
+
+        if (liquids.size() == 1 && glass == Glass.PINT) {
+            // Bière seule : dorée
+            drinkBatch.drawImage(
+                tintImage(beer, Color.web("#f2b134")),
+                x, y, width, height
+            );
+
+        } else if (liquids.size() == 1 && glass == Glass.WINE_GLASS) {
+            drinkBatch.drawImage(
+                tintImage(wine, Color.web("#f3e9a6")),
+                x, y, width, height
+            );
+
+        } else {
+            Color color;
+
+            if (match != null) {
+                color = getDrinkColor(match.getName());
             } else {
-                Color color;
-                if (match != null) {
-                    color = getDrinkColor(match.getName());
-                } else {
-                    color = mixColors(liquids);
-                }
-                drinkBatch.drawImage(getTintedLiquid(glass, color), x, y, width, height);
+                color = mixColors(liquids);
             }
-        }
 
-        switch (glass) {
-            case HIGHBALL:
-                drinkBatch.drawImage(highballGlass, x, y, width, height);
-                break;
-            case MARTINI:
-                drinkBatch.drawImage(martiniGlass, x, y, width, height);
-                break;
-            case PINT:
-                drinkBatch.drawImage(beerGlass, x, y, width, height);
-                if (match != null) {
-                    drinkBatch.drawImage(beerFoam, x, y, width, height);
-                }
-                break;
-            case WINE_GLASS:
-                drinkBatch.drawImage(wineGlass, x, y, width, height);
-                break;
+            drinkBatch.drawImage(
+                getTintedLiquid(glass, color),
+                x, y, width, height
+            );
         }
     }
+    switch (glass) {
+        case HIGHBALL:
+            drinkBatch.drawImage(highballGlass, x, y, width, height);
+            break;
+
+        case MARTINI:
+            drinkBatch.drawImage(martiniGlass, x, y, width, height);
+            break;
+
+        case PINT:
+            drinkBatch.drawImage(beerGlass, x, y, width, height);
+
+            if (match != null) {
+                drinkBatch.drawImage(beerFoam, x, y, width, height);
+            }
+            break;
+
+        case WINE_GLASS:
+            drinkBatch.drawImage(wineGlass, x, y, width, height);
+            break;
+    }
+}
+
 
     private ArrayList<Ingredient> getLiquids(ArrayList<Ingredient> ingredients) {
         ArrayList<Ingredient> liquids = new ArrayList<>();
