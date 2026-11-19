@@ -535,7 +535,10 @@ public class GameScreen extends Canvas{
         kickBatch.clearRect(0, 0, WIDTH, HEIGHT);
         for (Explosion explosion : explosions) {
             kickBatch.save();
+            explosion.update();
+            kickBatch.setGlobalAlpha(explosion.getOpacity());
             kickBatch.translate(explosion.getX() + 200, explosion.getY() + 200);
+            kickBatch.scale(explosion.getScale(), explosion.getScale());
             kickBatch.rotate(explosion.getRotation());
             if (explosion.getFlipStatus() == 1) {
                 kickBatch.scale(-1,1);
