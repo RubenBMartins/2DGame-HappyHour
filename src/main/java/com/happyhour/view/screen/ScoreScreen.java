@@ -1,5 +1,6 @@
-package com.happyhour;
+package com.happyhour.view.screen;
 
+import com.happyhour.HappyHourApp;
 import com.happyhour.model.score.ScoreBoard;
 import com.happyhour.model.score.ScoreEntry;
 

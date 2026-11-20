@@ -1,4 +1,7 @@
-package com.happyhour;
+package com.happyhour.view.screen;
+
+import com.happyhour.HappyHourApp;
+import com.happyhour.view.game.GameScreen;
 
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;

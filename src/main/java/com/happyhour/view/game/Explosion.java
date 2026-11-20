@@ -1,4 +1,4 @@
-package com.happyhour;
+package com.happyhour.view.game;
 
 import java.util.Random;
 
@@ -62,3 +62,4 @@ public class Explosion {
         return System.currentTimeMillis() - creationTime;
     }
 }
+

@@ -2,6 +2,13 @@ package com.happyhour;
 
 import com.happyhour.model.game.GameSession;
 import com.happyhour.model.score.ScoreBoard;
+import com.happyhour.view.audio.MusicPlayer;
+import com.happyhour.view.audio.SoundManager;
+import com.happyhour.view.game.GameScreen;
+import com.happyhour.view.screen.MenuScreen;
+import com.happyhour.view.screen.ScoreScreen;
+import com.happyhour.view.screen.SummaryScreen;
+import com.happyhour.view.screen.TutorialScreen;
 
 import javafx.application.Application;
 import javafx.stage.Stage;

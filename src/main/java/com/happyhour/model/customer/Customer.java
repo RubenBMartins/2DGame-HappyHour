@@ -1,6 +1,10 @@
 package com.happyhour.model.customer;
 
 import com.happyhour.model.GameConfig;
+import com.happyhour.model.customer.state.CustomerState;
+import com.happyhour.model.customer.state.DrinkingState;
+import com.happyhour.model.customer.state.LeftState;
+import com.happyhour.model.customer.state.WaitingState;
 import com.happyhour.model.drink.Drink;
 import com.happyhour.model.drink.Preparation;
 
@@ -98,3 +102,4 @@ public abstract class Customer {
 
     public abstract double computeTip(double baseTip, double speedBonus);
 }
+

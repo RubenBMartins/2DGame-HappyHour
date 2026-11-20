@@ -1,4 +1,4 @@
-package com.happyhour;
+package com.happyhour.view.audio;
 
 import java.net.URL;
 

@@ -1,6 +1,7 @@
-package com.happyhour;
+package com.happyhour.controller;
 
 import com.happyhour.model.game.GameSession;
+import com.happyhour.view.game.GameScreen;
 
 import javafx.animation.AnimationTimer;
 
@@ -25,11 +26,8 @@ public class GameLoop extends AnimationTimer {
 
         session.update(deltaTime);
         if (session.isOver()) {
-            stop();
-            curscreen.endGame(session);
             return;
         }
-
         curscreen.render();
     }
 }

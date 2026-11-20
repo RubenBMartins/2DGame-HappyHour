@@ -1,23 +1,27 @@
-package com.happyhour;
+package com.happyhour.view.game;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
+import com.happyhour.HappyHourApp;
+import com.happyhour.controller.BarController;
+import com.happyhour.controller.GameLoop;
+import com.happyhour.controller.GameSettings;
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.ChildCustomer;
 import com.happyhour.model.customer.Customer;
 import com.happyhour.model.customer.GenerousCustomer;
 import com.happyhour.model.customer.PickyCustomer;
 import com.happyhour.model.customer.RushedCustomer;
-import com.happyhour.model.drink.Drink;
-import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
 import com.happyhour.model.drink.Preparation;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.game.GameListener;
 import com.happyhour.model.game.GameSession;
 import com.happyhour.model.game.Phase;
+import com.happyhour.view.audio.SoundManager;
+import com.happyhour.view.screen.PauseScreen;
+import com.happyhour.view.screen.SettingsScreen;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -32,11 +36,6 @@ import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -65,15 +64,6 @@ public class GameScreen extends Canvas implements GameListener {
     private Image bg;
 
     private Image orderBubble;
-    private Image beerFoam;
-    private Image beerGlass;
-    private Image beer;
-    private Image highballGlass;
-    private Image highball;
-    private Image martiniGlass;
-    private Image martini;
-    private Image wineGlass;
-    private Image wine;
 
     
     private GraphicsContext batch;
@@ -101,6 +91,8 @@ public class GameScreen extends Canvas implements GameListener {
     private Pane root;
     private Pane gamePane;
     private GameLoop gameLoop;
+    private BarController controller;
+    private DrinkPainter painter;
     private Label timeLabel;
     private Label moneyLabel;
     private Label lostLabel;
@@ -108,15 +100,14 @@ public class GameScreen extends Canvas implements GameListener {
     private Label feedbackLabel;
     private ImageView recipeView;
     private List<Explosion> explosions = new ArrayList<>();
-    private ArrayList<CustomerAppears> customerAnimations = new ArrayList<>();
-    private List<CustomerAppears> policeAnimations = new ArrayList<>();
+    private ArrayList<CustomerAnimation> customerAnimations = new ArrayList<>();
+    private List<CustomerAnimation> policeAnimations = new ArrayList<>();
     private Image policeImage;
     private Image normalSprite;
     private Image rushedSprite;
     private Image pickySprite;
     private Image generousSprite;
     private Image childSprite;
-    private HashMap<String, Image> tintCache = new HashMap<>();
     private String[] popupText = new String[GameConfig.SEATS];
     private long[] popupStart = new long[GameConfig.SEATS];
     private Label hoverLabel;
@@ -151,15 +142,6 @@ public class GameScreen extends Canvas implements GameListener {
         kick = new Image(getClass().getResourceAsStream("/images/kick.png"),400, 400, true, false);
         
         orderBubble = new Image(getClass().getResourceAsStream("/images/orderBubble.png"),180, 260, true, false);
-        beerFoam = new Image(getClass().getResourceAsStream("/images/beerFoam.png"),100, 150, true, false);
-        beerGlass = new Image(getClass().getResourceAsStream("/images/beerGlass.png"),100, 150, true, false);
-        beer = new Image(getClass().getResourceAsStream("/images/beer.png"),100, 150, true, false);
-        highballGlass = new Image(getClass().getResourceAsStream("/images/highballGlass.png"),60, 150, true, false);
-        highball = new Image(getClass().getResourceAsStream("/images/highball.png"),60, 150, true, false);
-        martiniGlass = new Image(getClass().getResourceAsStream("/images/martiniGlass.png"),90, 150, true, false);
-        martini = new Image(getClass().getResourceAsStream("/images/martini.png"),90, 150, true, false);
-        wineGlass = new Image(getClass().getResourceAsStream("/images/wineGlass.png"),70, 150, true, false);
-        wine = new Image(getClass().getResourceAsStream("/images/wine.png"),70, 150, true, false);
 
 
         backgroundCanvas = new Canvas(WIDTH, HEIGHT);
@@ -222,7 +204,7 @@ public class GameScreen extends Canvas implements GameListener {
         for (int i = 0; i < 6; i++) {
             double x = seatX(i);
             double y = 390;
-            CustomerAppears animation = new CustomerAppears(i, x, y, policeImage, i * 83L);
+            CustomerAnimation animation = new CustomerAnimation(i, x, y, policeImage, i * 83L);
             policeAnimations.add(animation);
         }
     }
@@ -232,7 +214,7 @@ public class GameScreen extends Canvas implements GameListener {
         double x = seatX(seat);
         double y = 390;
 
-        customerAnimations.add(CustomerAppears.arrival(seat, getSprite(customer), x, y));
+        customerAnimations.add(CustomerAnimation.arrival(seat, getSprite(customer), x, y));
     }
 
     @Override
@@ -240,7 +222,7 @@ public class GameScreen extends Canvas implements GameListener {
         double x = seatX(seat);
         double y = 390;
 
-        customerAnimations.add(CustomerAppears.departure(seat, getSprite(customer), x, y));
+        customerAnimations.add(CustomerAnimation.departure(seat, getSprite(customer), x, y));
     }
 
     @Override
@@ -263,7 +245,7 @@ public class GameScreen extends Canvas implements GameListener {
             }
         }
 
-        for (CustomerAppears animation : policeAnimations) {
+        for (CustomerAnimation animation : policeAnimations) {
             animation.update();
 
             batch.save();
@@ -278,7 +260,7 @@ public class GameScreen extends Canvas implements GameListener {
             batch.restore();
         }
 
-        for (CustomerAppears animation : customerAnimations) {
+        for (CustomerAnimation animation : customerAnimations) {
             animation.update();
 
             batch.save();
@@ -294,12 +276,12 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
-    private double seatX(int seat) {
+    public static double seatX(int seat) {
         return 310 + seat * 240;
     }
 
     private boolean isAnimated(int seat) {
-        for (CustomerAppears animation : customerAnimations) {
+        for (CustomerAnimation animation : customerAnimations) {
             if (animation.getSeat() == seat) {
                 return true;
             }
@@ -365,13 +347,13 @@ public class GameScreen extends Canvas implements GameListener {
         }
         ArrayList<String> parts = new ArrayList<>();
         if (preparation.getGlass() != null) {
-            parts.add(glassName(preparation.getGlass()));
+            parts.add(DrinkNames.glassName(preparation.getGlass()));
         }
         for (Ingredient ingredient : preparation.getIngredients()) {
-            parts.add(ingredientName(ingredient));
+            parts.add(DrinkNames.ingredientName(ingredient));
         }
         if (preparation.getTechnique() != Technique.NONE) {
-            parts.add(techniqueName(preparation.getTechnique()));
+            parts.add(DrinkNames.techniqueName(preparation.getTechnique()));
         }
 
         if (parts.isEmpty()) {
@@ -400,6 +382,9 @@ public class GameScreen extends Canvas implements GameListener {
 
     public void start(Stage stage) {
         this.stage = stage;
+        session = new GameSession();
+        controller = new BarController(session, this);
+        painter = new DrinkPainter(drinkBatch, session.getRecipeBook());
         gamePane = new Pane();
         gamePane.setPrefSize(WIDTH, HEIGHT);
         gamePane.setMinSize(WIDTH, HEIGHT);
@@ -492,14 +477,7 @@ public class GameScreen extends Canvas implements GameListener {
         gamePane.getChildren().add(policeLightLeft);
         gamePane.getChildren().add(policeLightRight);
 
-        for (int seat = 0; seat < GameConfig.SEATS; seat++) {
-            Rectangle seatBox = new Rectangle(seatX(seat), 390, 160, 290);
-            seatBox.setFill(Color.TRANSPARENT);
-            setupSeat(seatBox, seat);
-            gamePane.getChildren().add(seatBox);
-        }
-        createStations(gamePane);
-        createBubbleZones(gamePane);
+        controller.createZones(gamePane);
         gamePane.getChildren().add(drinksCanvas);
         gamePane.getChildren().add(kickCanvas);
         arm1View = createArmView(arm1Pos, arm1Rot, false);
@@ -514,7 +492,6 @@ public class GameScreen extends Canvas implements GameListener {
         root.getChildren().add(gamePane);
         root.widthProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
         root.heightProperty().addListener((obs, oldVal, newVal) -> resizeGame(gamePane, root));
-        session = new GameSession();
 
         gameLoop = new GameLoop(session, this);
         session.addListener(this);
@@ -533,7 +510,7 @@ public class GameScreen extends Canvas implements GameListener {
             melvin.updateMouse(point.getX(), point.getY());
         });
 
-        installKeys(scene);
+        controller.installKeys(scene);
     }
 
     private void renderDisco() {
@@ -548,27 +525,7 @@ public class GameScreen extends Canvas implements GameListener {
         lightsView.setEffect(discoHue);
     }
 
-    private void setupSeat(Rectangle box, int seat) {
-        box.setOnMouseClicked(event -> {
-            if (session.isPoliceRaidActive()) {
-                return;
-            }
-            if (event.getButton() == MouseButton.PRIMARY) {
-                session.serve(seat);
-                if (session.isPoliceRaidActive()) {
-                    SoundManager.play("siren");
-                }
-            } else if (event.getButton() == MouseButton.SECONDARY) {
-                if (session.getCustomer(seat) != null) {
-                    session.kick(seat);
-                    SoundManager.play("kick");
-                    explosions.add(new Explosion(seatX(seat) - 120, 340));
-                }
-            }
-        });
-    }
-
-    private void moveHover(String text, MouseEvent event) {
+    public void moveHover(String text, MouseEvent event) {
         Point2D point = gamePane.sceneToLocal(event.getSceneX(), event.getSceneY());
         double dx = point.getX() - hoverX;
         double dy = point.getY() - hoverY;
@@ -582,194 +539,14 @@ public class GameScreen extends Canvas implements GameListener {
         hoverTimer.playFromStart();
     }
 
-    private void stopHover() {
+    public void stopHover() {
         hoverTimer.stop();
         hoverLabel.setVisible(false);
     }
 
-    private void installHover(Node node, String text) {
+    public void installHover(Node node, String text) {
         node.addEventHandler(MouseEvent.MOUSE_MOVED, event -> moveHover(text, event));
         node.addEventHandler(MouseEvent.MOUSE_EXITED, event -> stopHover());
-    }
-
-    private Rectangle createZone(Pane pane, double x, double y, double width, double height, String name) {
-        Rectangle zone = new Rectangle(x, y, width, height);
-        zone.setFill(Color.web("0xFFFFFF", 0));
-        installHover(zone, name);
-        pane.getChildren().add(zone);
-        return zone;
-    }
-
-    private void playSound(String name) {
-        if (!session.isPoliceRaidActive()) {
-            SoundManager.play(name);
-        }
-    }
-
-    private void addGlassZone(Pane pane, double x, double y, double width, double height, Glass glass) {
-        Rectangle zone = createZone(pane, x, y, width, height, glassName(glass));
-        zone.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.PRIMARY) {
-                session.chooseGlass(glass);
-                playSound("bottle");
-            }
-        });
-    }
-
-    private void addIngredientZone(Pane pane, double x, double y, double width, double height, Ingredient ingredient) {
-        Rectangle zone = createZone(pane, x, y, width, height, ingredientName(ingredient));
-        zone.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.PRIMARY) {
-                session.addIngredient(ingredient);
-                if (session.getPreparation().getGlass() != null) {
-                    playSound("water");
-                }
-            }
-        });
-    }
-
-    private void addTechniqueZone(Pane pane, double x, double y, double width, double height, Technique technique) {
-        Rectangle zone = createZone(pane, x, y, width, height, techniqueName(technique));
-        zone.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.PRIMARY) {
-                session.useTechnique(technique);
-                if (session.getPreparation().getGlass() != null) {
-                    playSound("bottle");
-                }
-            }
-        });
-    }
-
-    private void createStations(Pane pane) {
-        addGlassZone(pane, 73, 945, 82, 120, Glass.PINT);
-        addGlassZone(pane, 175, 915, 92, 150, Glass.MARTINI);
-        addGlassZone(pane, 278, 915, 62, 150, Glass.HIGHBALL);
-        addGlassZone(pane, 350, 915, 72, 150, Glass.WINE_GLASS);
-
-        addIngredientZone(pane, 527, 885, 80, 180, Ingredient.WHITE_WINE);
-        addIngredientZone(pane, 642, 885, 80, 180, Ingredient.VODKA);
-        addIngredientZone(pane, 761, 885, 80, 180, Ingredient.GIN);
-        addIngredientZone(pane, 880, 885, 80, 180, Ingredient.TEQUILA);
-        addIngredientZone(pane, 1011, 885, 80, 180, Ingredient.TRIPLE_SEC);
-        addIngredientZone(pane, 1101, 885, 80, 180, Ingredient.RASPBERRY_SYRUP);
-        addIngredientZone(pane, 1190, 885, 80, 180, Ingredient.TONIC);
-        addIngredientZone(pane, 1280, 885, 80, 180, Ingredient.LEMON_JUICE);
-        addIngredientZone(pane, 1376, 885, 84, 180, Ingredient.CRANBERRY_JUICE);
-
-        addIngredientZone(pane, 54, 540, 234, 277, Ingredient.BEER);
-        addIngredientZone(pane, 1506, 882, 446, 178, Ingredient.ICE);
-        addIngredientZone(pane, 696, 686, 92, 74, Ingredient.LIME);
-        addIngredientZone(pane, 942, 686, 92, 88, Ingredient.ORANGE_ZEST);
-        addIngredientZone(pane, 1195, 678, 86, 96, Ingredient.RASPBERRY);
-
-        addTechniqueZone(pane, 1518, 759, 284, 58, Technique.STIR);
-        addTechniqueZone(pane, 1799, 552, 107, 211, Technique.SHAKE);
-    }
-
-    private void createBubbleZones(Pane pane) {
-        for (int seat = 0; seat < GameConfig.SEATS; seat++) {
-            int currentSeat = seat;
-            Rectangle zone = new Rectangle(seatX(seat) - 10, 170, 180, 220);
-            zone.setFill(Color.web("0xFFFFFF", 0));
-            zone.addEventHandler(MouseEvent.MOUSE_MOVED, event -> {
-                Drink order = session.getOrder(currentSeat);
-                if (order != null) {
-                    moveHover(order.getName(), event);
-                } else {
-                    stopHover();
-                }
-            });
-            zone.addEventHandler(MouseEvent.MOUSE_EXITED, event -> stopHover());
-            pane.getChildren().add(zone);
-        }
-    }
-
-    private String glassName(Glass glass) {
-        switch (glass) {
-            case PINT:
-                return "Pinte";
-            case MARTINI:
-                return "Verre à martini";
-            case HIGHBALL:
-                return "Highball";
-            default:
-                return "Verre à vin";
-        }
-    }
-
-    private String ingredientName(Ingredient ingredient) {
-        switch (ingredient) {
-            case VODKA:
-                return "Vodka";
-            case TEQUILA:
-                return "Tequila";
-            case GIN:
-                return "Gin";
-            case TRIPLE_SEC:
-                return "Triple sec";
-            case RASPBERRY_SYRUP:
-                return "Sirop de framboise";
-            case TONIC:
-                return "Tonic";
-            case LEMON_JUICE:
-                return "Jus de citron";
-            case CRANBERRY_JUICE:
-                return "Jus de cranberry";
-            case ICE:
-                return "Glaçons";
-            case LIME:
-                return "Citron vert";
-            case ORANGE_ZEST:
-                return "Zeste d'orange";
-            case RASPBERRY:
-                return "Framboise";
-            case BEER:
-                return "Bière";
-            default:
-                return "Vin blanc";
-        }
-    }
-
-    private String techniqueName(Technique technique) {
-        if (technique == Technique.STIR) {
-            return "Cuillère";
-        }
-        return "Shaker";
-    }
-
-    private void installKeys(Scene scene) {
-        scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.SPACE) {
-                if (!session.isPoliceRaidActive()) {
-                    pause();
-                }
-            } else if (event.getCode() == KeyCode.E) {
-                session.spawnChild();
-            } else if (event.getCode() == KeyCode.N) {
-                session.skipPhase();
-            } else if (event.getCode() == KeyCode.O) {
-                session.spawnCustomer();
-            } else if (event.getCode() == KeyCode.A) {
-                session.countdownSkip();
-            }
-        });
-    }
-
-    private WritableImage tintImage(Image source, Color tint) {
-        int width = (int) source.getWidth();
-        int height = (int) source.getHeight();
-        PixelReader reader = source.getPixelReader();
-        WritableImage result = new WritableImage(width, height);
-        PixelWriter writer = result.getPixelWriter();
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                Color color = reader.getColor(x, y);
-                double brightness = color.getBrightness();
-                Color tintedColor = Color.color(tint.getRed() * brightness, tint.getGreen() * brightness, tint.getBlue() * brightness, color.getOpacity());
-                writer.setColor(x, y, tintedColor);
-            }
-        }
-        return result;
     }
 
     public void renderOrders() {
@@ -780,10 +557,10 @@ public class GameScreen extends Canvas implements GameListener {
                 double centerX = seatX(seat) + 80;
                 if (customer.canBeServed()) {
                     drinkBatch.drawImage(orderBubble, seatX(seat) - 10, 170, 180, 260);
-                    drawDrink(customer.getOrder(), centerX, 190, 1);
+                    painter.drawDrink(customer.getOrder(), centerX, 190, 1);
                     drawPatienceBar(customer, seat);
                 } else if (customer.getServedPreparation() != null) {
-                    drawPreparation(customer.getServedPreparation(), centerX, 675, 0.6);
+                    painter.drawPreparation(customer.getServedPreparation(), centerX, 675, 0.6);
                 }
             }
         }
@@ -839,17 +616,8 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
-    private void drawDrink(Drink order, double centerX, double topY, double scale) {
-        Color color;
-        if (order.getGlass() == Glass.PINT) {
-            color = getIngredientColor(Ingredient.BEER);
-        } else if (order.getGlass() == Glass.WINE_GLASS) {
-            color = getIngredientColor(Ingredient.WHITE_WINE);
-        } else {
-            color = getDrinkColor(order.getName());
-        }
-        double height = 150 * scale;
-        drawGlass(order.getGlass(), color, order.getGlass() == Glass.PINT, centerX, topY + height / 2, scale);
+    public void showKick(int seat) {
+        explosions.add(new Explosion(seatX(seat) - 120, 340));
     }
 
     public void pause() {
@@ -876,7 +644,7 @@ public class GameScreen extends Canvas implements GameListener {
 
     public void resume() {
         stage.getScene().setRoot(root);
-        installKeys(stage.getScene());
+        controller.installKeys(stage.getScene());
         if (session.isPaused()) {
             session.togglePause();
         }
@@ -899,156 +667,6 @@ public class GameScreen extends Canvas implements GameListener {
 
     public void endGame(GameSession session) {
         app.showSummary(session);
-    }
-
-    private void drawPreparation(Preparation preparation, double centerX, double centerY, double scale) {
-        Glass glass = preparation.getGlass();
-        if (glass == null) {
-            return;
-        }
-        ArrayList<Ingredient> liquids = getLiquids(preparation.getIngredients());
-        Color color = null;
-        if (!liquids.isEmpty()) {
-            Drink match = findMatchingDrink(preparation);
-            if (match != null && (glass == Glass.HIGHBALL || glass == Glass.MARTINI)) {
-                color = getDrinkColor(match.getName());
-            } else {
-                color = mixColors(liquids);
-            }
-        }
-        boolean foam = glass == Glass.PINT && preparation.getIngredients().contains(Ingredient.BEER);
-        drawGlass(glass, color, foam, centerX, centerY, scale);
-    }
-
-    // Dessine un verre centré sur (centerX, centerY), avec son liquide si color n'est pas null
-    private void drawGlass(Glass glass, Color color, boolean foam, double centerX, double centerY, double scale) {
-        double width = 100 * scale;
-        if (glass == Glass.WINE_GLASS) {
-            width = 80 * scale;
-        } else if (glass == Glass.HIGHBALL) {
-            width = 60 * scale;
-        }
-        double height = 150 * scale;
-        double x = centerX - width / 2;
-        double y = centerY - height / 2;
-
-        if (color != null) {
-            drinkBatch.drawImage(getTintedLiquid(glass, color), x, y, width, height);
-        }
-        drinkBatch.drawImage(getGlassImage(glass), x, y, width, height);
-        if (foam) {
-            drinkBatch.drawImage(beerFoam, x, y, width, height);
-        }
-    }
-
-    private Image getGlassImage(Glass glass) {
-        if (glass == Glass.PINT) {
-            return beerGlass;
-        } else if (glass == Glass.WINE_GLASS) {
-            return wineGlass;
-        } else if (glass == Glass.HIGHBALL) {
-            return highballGlass;
-        }
-        return martiniGlass;
-    }
-
-    private ArrayList<Ingredient> getLiquids(ArrayList<Ingredient> ingredients) {
-        ArrayList<Ingredient> liquids = new ArrayList<>();
-        for (Ingredient ingredient : ingredients) {
-            if (ingredient.isLiquid()) {
-                liquids.add(ingredient);
-            }
-        }
-        return liquids;
-    }
-
-    private Drink findMatchingDrink(Preparation preparation) {
-        ArrayList<Ingredient> made = getLiquids(preparation.getIngredients());
-        for (Drink drink : session.getRecipeBook().getDrinks()) {
-            if (drink.getGlass() == preparation.getGlass()
-                    && getLiquids(drink.getIngredients()).equals(made)) {
-                return drink;
-            }
-        }
-        return null;
-    }
-
-    private Image getLiquidImage(Glass glass) {
-        if (glass == Glass.PINT) {
-            return beer;
-        } else if (glass == Glass.WINE_GLASS) {
-            return wine;
-        } else if (glass == Glass.HIGHBALL) {
-            return highball;
-        }
-        return martini;
-    }
-
-    private Color getDrinkColor(String name) {
-        switch (name) {
-            case "Gin Tonic":
-                return Color.web("#00c7e6");
-            case "Tequila Tonic":
-                return Color.web("#ff9100");
-            case "Pink Cape Cod":
-                return Color.web("#FF7EB9");
-            case "Margarita":
-                return Color.web("#9BE15D");
-            case "Clover Club":
-                return Color.web("#cd07ff");
-            case "Cosmopolitan":
-                return Color.web("#D7263D");
-        }
-        return Color.WHITE;
-    }
-
-    private Color getIngredientColor(Ingredient ingredient) {
-        switch (ingredient) {
-            case VODKA:
-                return Color.web("#e8f4ff");
-            case GIN:
-                return Color.web("#dff7f2");
-            case TEQUILA:
-                return Color.web("#f5d76e");
-            case TRIPLE_SEC:
-                return Color.web("#ffa733");
-            case RASPBERRY_SYRUP:
-                return Color.web("#e0115f");
-            case TONIC:
-                return Color.web("#c9f0ff");
-            case LEMON_JUICE:
-                return Color.web("#f7f06d");
-            case CRANBERRY_JUICE:
-                return Color.web("#b5122e");
-            case BEER:
-                return Color.web("#f2b134");
-            case WHITE_WINE:
-                return Color.web("#f3e9a6");
-            default:
-                return Color.WHITE;
-        }
-    }
-
-    private Color mixColors(ArrayList<Ingredient> liquids) {
-        double red = 0;
-        double green = 0;
-        double blue = 0;
-        for (Ingredient ingredient : liquids) {
-            Color color = getIngredientColor(ingredient);
-            red = red + color.getRed();
-            green = green + color.getGreen();
-            blue = blue + color.getBlue();
-        }
-        int count = liquids.size();
-        return Color.color(red / count, green / count, blue / count);
-    }
-
-    private Image getTintedLiquid(Glass glass, Color color) {
-        String key = glass + color.toString();
-        if (!tintCache.containsKey(key)) {
-            tintCache.put(key, tintImage(getLiquidImage(glass), color));
-        }
-        return tintCache.get(key);
     }
 
     private void renderPoliceLights() {
@@ -1104,6 +722,7 @@ public class GameScreen extends Canvas implements GameListener {
         arm2Pos.setY(melvin.getY());
         arm2Rot.setAngle(angle);
 
-        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
+        painter.drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
     }
 }
+

@@ -1,4 +1,4 @@
-package com.happyhour;
+package com.happyhour.view.game;
 import javafx.scene.image.Image;
 
 public class Player {
@@ -31,4 +31,5 @@ public class Player {
         mouseY = y;
     }
 }
+
 

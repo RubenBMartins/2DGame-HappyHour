@@ -1,4 +1,6 @@
-package com.happyhour.model.customer;
+package com.happyhour.model.customer.state;
+
+import com.happyhour.model.customer.Customer;
 
 public abstract class CustomerState {
 

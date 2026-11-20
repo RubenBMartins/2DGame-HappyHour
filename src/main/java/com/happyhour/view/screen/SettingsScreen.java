@@ -1,4 +1,9 @@
-package com.happyhour;
+package com.happyhour.view.screen;
+
+import com.happyhour.HappyHourApp;
+import com.happyhour.controller.GameSettings;
+import com.happyhour.view.audio.MusicPlayer;
+import com.happyhour.view.audio.SoundManager;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;

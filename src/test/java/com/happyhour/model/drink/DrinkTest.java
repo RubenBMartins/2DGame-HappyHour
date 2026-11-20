@@ -178,6 +178,16 @@ public class DrinkTest {
     }
 
     @Test
+    void shakenCocktailGivesBetterTips() {
+        ArrayList<Ingredient> ingredients = new ArrayList<>();
+        ingredients.add(Ingredient.GIN);
+        Drink shaken = new ShakenCocktail("Test", ingredients);
+        assertEquals(4.0, shaken.getBaseTip(10));
+        assertEquals(3.0, shaken.getBaseTip(7));
+        assertEquals(1.5, shaken.getBaseTip(5));
+    }
+
+    @Test
     void cocktailsCostMoreThanBeerAndWine() {
         assertEquals(7, new Beer().getPrice());
         assertEquals(5, new Wine().getPrice());

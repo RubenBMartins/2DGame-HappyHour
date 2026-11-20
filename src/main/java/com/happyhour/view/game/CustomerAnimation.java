@@ -1,8 +1,8 @@
-package com.happyhour;
+package com.happyhour.view.game;
 
 import javafx.scene.image.Image;
 
-public class CustomerAppears {
+public class CustomerAnimation {
     private double x;
     private double y;
     private long creationTime;
@@ -13,7 +13,7 @@ public class CustomerAppears {
     private Image customerImage;
     private long startDelay;
 
-    public CustomerAppears(int seat, double x, double y, Image image, long startDelay) {
+    public CustomerAnimation(int seat, double x, double y, Image image, long startDelay) {
         this.x = x;
         this.y = y + 40;
         this.startY = this.y;
@@ -24,12 +24,12 @@ public class CustomerAppears {
         this.startDelay = startDelay;
     }
 
-    public static CustomerAppears arrival(int seat, Image image, double x, double y) {
-        return new CustomerAppears(seat, x, y, image, 0);
+    public static CustomerAnimation arrival(int seat, Image image, double x, double y) {
+        return new CustomerAnimation(seat, x, y, image, 0);
     }
 
-    public static CustomerAppears departure(int seat, Image image, double x, double y) {
-        CustomerAppears animation = new CustomerAppears(seat, x, y, image, 0);
+    public static CustomerAnimation departure(int seat, Image image, double x, double y) {
+        CustomerAnimation animation = new CustomerAnimation(seat, x, y, image, 0);
         animation.departing = true;
         animation.y = y;
         animation.startY = y;
@@ -75,3 +75,4 @@ public class CustomerAppears {
         return System.currentTimeMillis() - creationTime - startDelay;
     }
 }
+

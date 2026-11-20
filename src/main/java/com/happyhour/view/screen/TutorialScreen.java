@@ -1,4 +1,6 @@
-package com.happyhour;
+package com.happyhour.view.screen;
+
+import com.happyhour.HappyHourApp;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
