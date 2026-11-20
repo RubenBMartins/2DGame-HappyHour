@@ -105,8 +105,6 @@ public class GameScreen extends Canvas implements GameListener {
     private double hoverY;
     private int lastCountdownSecond = -1;
 
-    /* Pour l'instant, on n'utilise qu'une seule méthode, n'ayant pas besoin des autres, je les initialise ici pour ne pas avoir d'erreurs */
-
     @Override
     public void onPhaseChanged(Phase phase) {
     }
