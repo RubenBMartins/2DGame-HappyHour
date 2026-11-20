@@ -97,6 +97,13 @@ public class GameScreen extends Canvas implements GameListener {
     private List<CustomerAppears> policeAnimations = new ArrayList<>();
     private Image policeImage;
     private HashMap<String, Image> tintCache = new HashMap<>();
+    private String[] popupText = new String[GameConfig.SEATS];
+    private long[] popupStart = new long[GameConfig.SEATS];
+    private Label hoverLabel;
+    private PauseTransition hoverTimer;
+    private double hoverX;
+    private double hoverY;
+    private int lastCountdownSecond = -1;
 
     /* Pour l'instant, on n'utilise qu'une seule méthode, n'ayant pas besoin des autres, je les initialise ici pour ne pas avoir d'erreurs */
 
