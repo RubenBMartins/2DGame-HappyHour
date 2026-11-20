@@ -1,10 +1,12 @@
 package com.happyhour.model.customer;
 
 import com.happyhour.model.GameConfig;
+import com.happyhour.model.customer.state.CustomerState;
+import com.happyhour.model.customer.state.DrinkingState;
+import com.happyhour.model.customer.state.LeftState;
+import com.happyhour.model.customer.state.WaitingState;
 import com.happyhour.model.drink.Drink;
-
-import javafx.scene.image.Image;
-import com.happyhour.model.customer.Customer;
+import com.happyhour.model.drink.Preparation;
 
 public abstract class Customer {
     private Drink order;
@@ -12,7 +14,7 @@ public abstract class Customer {
     private double maxPatience;
     private double patienceSpeed = 1;
     private CustomerState state = new WaitingState();
-    
+    private Preparation servedPreparation;
 
     public Customer(Drink order, double patience) {
         this.order = order;
@@ -82,6 +84,14 @@ public abstract class Customer {
         this.order = order;
     }
 
+    public Preparation getServedPreparation() {
+        return servedPreparation;
+    }
+
+    public void setServedPreparation(Preparation servedPreparation) {
+        this.servedPreparation = servedPreparation;
+    }
+
     public double getPatience() {
         return patience;
     }
@@ -90,11 +100,6 @@ public abstract class Customer {
         return maxPatience;
     }
 
-    public CustomerState getState() {
-        return state;
-    }
-
     public abstract double computeTip(double baseTip, double speedBonus);
-
-    public abstract Image getSprite();
 }
+

@@ -9,6 +9,11 @@ public class ShakenCocktail extends Cocktail {
     }
 
     @Override
+    public double getBaseTip(int grade) {
+        return tipForGrade(grade, 4, 3, 1.5);
+    }
+
+    @Override
     public DrinkCategory getCategory() {
         return DrinkCategory.SHAKEN;
     }

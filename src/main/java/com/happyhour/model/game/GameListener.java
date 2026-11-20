@@ -4,10 +4,12 @@ import com.happyhour.model.customer.Customer;
 
 public interface GameListener {
     void onScoreChanged(double tips);
-    
+
     void onCustomerArrived(int seat, Customer customer);
 
-    void onCustomerLeft(int seat);
+    void onCustomerLeft(int seat, Customer customer);
+
+    void onCustomerServed(int seat, double amount);
 
     void onPoliceRaid();
 

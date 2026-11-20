@@ -10,8 +10,8 @@ public class CashRegister {
     private int servedCustomers = 0;
     private HashMap<String, Integer> drinkCounts = new HashMap<>();
 
-    public void recordSale(Drink drink, double tip) {
-        revenue = revenue + drink.getPrice();
+    public void recordSale(Drink drink, double price, double tip) {
+        revenue = revenue + price;
         tips = tips + tip;
         servedCustomers = servedCustomers + 1;
 

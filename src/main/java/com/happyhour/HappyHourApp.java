@@ -2,6 +2,13 @@ package com.happyhour;
 
 import com.happyhour.model.game.GameSession;
 import com.happyhour.model.score.ScoreBoard;
+import com.happyhour.view.audio.MusicPlayer;
+import com.happyhour.view.audio.SoundManager;
+import com.happyhour.view.game.GameScreen;
+import com.happyhour.view.screen.MenuScreen;
+import com.happyhour.view.screen.ScoreScreen;
+import com.happyhour.view.screen.SummaryScreen;
+import com.happyhour.view.screen.TutorialScreen;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -10,6 +17,7 @@ public class HappyHourApp extends Application {
     private Stage stage;
     private ScoreBoard scoreBoard = new ScoreBoard("scores.txt");
     private MusicPlayer music;
+    private MusicPlayer musicDisco;
 
     @Override
     public void start(Stage stage) {
@@ -18,7 +26,14 @@ public class HappyHourApp extends Application {
         stage.setResizable(true);
         stage.setMaximized(true);
 
-        music = new MusicPlayer("/sounds/music.mp3");
+        music = new MusicPlayer("/sounds/la_suze_a_nova.mp3");
+        musicDisco = new MusicPlayer("/sounds/le_rush_du_bistrot.mp3");
+        SoundManager.load("kick", "kick.mp3");
+        SoundManager.load("bottle", "bottle.mp3");
+        SoundManager.load("water", "water.mp3");
+        SoundManager.load("countdown", "countdown.mp3");
+        SoundManager.load("siren", "siren.mp3");
+        SoundManager.load("cash", "cash.mp3");
         music.play();
 
         showMenu();
@@ -28,6 +43,7 @@ public class HappyHourApp extends Application {
     @Override
     public void stop() {
         music.stop();
+        musicDisco.stop();
     }
 
     public void showMenu() {
@@ -50,8 +66,19 @@ public class HappyHourApp extends Application {
         new ScoreScreen(this, scoreBoard).start(stage);
     }
 
-    public MusicPlayer getMusic() {
-        return music;
+    public MusicPlayer getMusic(boolean disco) {
+        if (disco) {
+            return musicDisco;
+        }
+        else {
+            return music;
+        }
+    }
+
+    public void switchMusic(boolean disco) {
+        music.stop();
+        musicDisco.stop();
+        getMusic(disco).play();
     }
 
     public static void main(String[] args) {

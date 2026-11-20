@@ -1,6 +1,7 @@
 package com.happyhour.model.game;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import com.happyhour.model.GameConfig;
 import com.happyhour.model.customer.ChildCustomer;
@@ -15,7 +16,6 @@ import com.happyhour.model.drink.Preparation;
 import com.happyhour.model.drink.RecipeBook;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.score.CashRegister;
-import java.util.Random;
 
 public class GameSession {
     private Customer[] seats = new Customer[GameConfig.SEATS];
@@ -29,26 +29,46 @@ public class GameSession {
     private double elapsed = 0;
     private Phase phase = Phase.OPENING;
     private double spawnTimer = 0;
+    private double nextSpawnDelay;
     private boolean closed = false;
     private boolean paused = false;
     private boolean over = false;
     private boolean defeat = false;
-    private ArrayList<Integer> openSeats = new ArrayList<Integer>();
     private Random rand = new Random();
+    private String feedback = null;
+    private int feedbackGrade = 0;
+    private double feedbackTimer = 0;
+    private boolean policeRaidInProgress = false;
+    private double policeRaidTimer = 0;
+    private boolean policeArrivalInProgress = false;
+    private double policeArrivalTimer = 0;
+
+    public GameSession() {
+        nextSpawnDelay = randomBetween(GameConfig.FIRST_CUSTOMER_MIN, GameConfig.FIRST_CUSTOMER_MAX);
+    }
 
     public void addListener(GameListener listener) {
         listeners.add(listener);
     }
 
     public void chooseGlass(Glass glass) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         preparation.chooseGlass(glass);
     }
 
     public void addIngredient(Ingredient ingredient) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         preparation.addIngredient(ingredient);
     }
 
     public void useTechnique(Technique technique) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         preparation.useTechnique(technique);
     }
 
@@ -59,9 +79,24 @@ public class GameSession {
         }
     }
 
+    private void removeAllCustomers() {
+        for (int i = 0; i < GameConfig.SEATS; i++) {
+            if (seats[i] != null) {
+                freeSeat(i);
+            }
+        }
+    }
+
+    public boolean isPoliceRaidActive() {
+        return policeRaidInProgress || policeArrivalInProgress;
+    }
+
     public void serve(int seat) {
         Customer customer = seats[seat];
-        if (over || closed || paused || customer == null || !customer.canBeServed()) {
+        if (over || closed || paused || isPoliceRaidActive()) {
+            return;
+        }
+        if (customer == null || !customer.canBeServed() || !preparation.isReady()) {
             return;
         }
 
@@ -72,7 +107,9 @@ public class GameSession {
 
         Drink order = customer.getOrder();
         int grade = order.grade(preparation);
+        Preparation served = preparation;
         preparation = new Preparation();
+        showFeedback(grade);
 
         if (!customer.accepts(grade)) {
             loseCustomer(seat);
@@ -84,14 +121,34 @@ public class GameSession {
             speedBonus = GameConfig.SPEED_BONUS;
         }
         double tip = customer.computeTip(order.getBaseTip(grade), speedBonus);
-        register.recordSale(order, tip);
+        double price = order.getPrice() * grade / 10.0;
+        register.recordSale(order, price, tip);
+        for (GameListener listener : listeners) {
+            listener.onCustomerServed(seat, price + tip);
+        }
+        customer.setServedPreparation(served);
         customer.serve();
         for (GameListener listener : listeners) {
             listener.onScoreChanged(register.getTotal());
         }
     }
 
+    private void showFeedback(int grade) {
+        if (grade == 10) {
+            feedback = "PARFAIT ! 10/10";
+        } else if (grade >= 5) {
+            feedback = grade + "/10 : " + (grade * 10) + " % DU PRIX";
+        } else {
+            feedback = "NUL ! " + grade + "/10";
+        }
+        feedbackGrade = grade;
+        feedbackTimer = GameConfig.FEEDBACK_TIME;
+    }
+
     public void kick(int seat) {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         Customer customer = seats[seat];
         if (over || paused || customer == null) {
             return;
@@ -105,12 +162,15 @@ public class GameSession {
     }
 
     public void togglePause() {
-        if (!over) {
+        if (!over && !isPoliceRaidActive()) {
             paused = !paused;
         }
     }
 
     public void spawnChild() {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         int seat = findFreeSeat();
         if (!over && !closed && seat != -1) {
             Customer child = new ChildCustomer(null);
@@ -119,7 +179,22 @@ public class GameSession {
         }
     }
 
+    public void spawnCustomer() {
+        if (isPoliceRaidActive()) {
+            return;
+        }
+        int seat = findFreeSeat();
+        if (!over && !closed && seat != -1) {
+            Customer customer = factory.createCustomer(elapsed, phase != Phase.OPENING);
+            giveOrder(customer);
+            placeCustomer(seat, customer);
+        }
+    }
+
     public void skipPhase() {
+        if (isPoliceRaidActive()) {
+            return;
+        }
         if (phase == Phase.OPENING) {
             elapsed = GameConfig.HAPPY_HOUR_START;
         } else if (phase == Phase.HAPPY_HOUR) {
@@ -129,9 +204,53 @@ public class GameSession {
         }
     }
 
-    public void update(double deltaTime) {
-        if (over || paused) {
+    public void countdownSkip() {
+        if (isPoliceRaidActive()) {
             return;
+        }
+        elapsed = GameConfig.COUNTDOWN_SKIP_TIME;
+    }
+
+    public void update(double deltaTime) {
+        if (over) {
+            return;
+        }
+
+        if (policeRaidInProgress) {
+            policeRaidTimer = policeRaidTimer - deltaTime;
+
+            if (policeRaidTimer <= 0) {
+                policeRaidInProgress = false;
+                policeArrivalInProgress = true;
+
+                for (GameListener listener : listeners) {
+                    listener.onPoliceRaid();
+                }
+
+                policeArrivalTimer = GameConfig.POLICE_ARRIVAL_TIME;
+            }
+            return;
+        }
+
+        if (policeArrivalInProgress) {
+            policeArrivalTimer = policeArrivalTimer - deltaTime;
+
+            if (policeArrivalTimer <= 0) {
+                policeArrivalInProgress = false;
+                endEvening(true);
+            }
+            return;
+        }
+
+        if (paused) {
+            return;
+        }
+
+        if (feedbackTimer > 0) {
+            feedbackTimer = feedbackTimer - deltaTime;
+            if (feedbackTimer <= 0) {
+                feedback = null;
+            }
         }
 
         elapsed = elapsed + deltaTime;
@@ -172,14 +291,10 @@ public class GameSession {
         }
 
         spawnTimer = spawnTimer + deltaTime;
-        if (spawnTimer >= getSpawnDelay()) {
+        if (spawnTimer >= nextSpawnDelay) {
             spawnTimer = 0;
-            int seat = findFreeSeat();
-            if (seat != -1) {
-                Customer customer = factory.createCustomer(elapsed, phase != Phase.OPENING);
-                giveOrder(customer);
-                placeCustomer(seat, customer);
-            }
+            nextSpawnDelay = randomSpawnDelay();
+            spawnCustomer();
         }
     }
 
@@ -198,13 +313,17 @@ public class GameSession {
         return Phase.RUSH;
     }
 
-    private double getSpawnDelay() {
+    private double randomSpawnDelay() {
         if (phase == Phase.OPENING) {
-            return GameConfig.OPENING_SPAWN_DELAY;
+            return randomBetween(GameConfig.OPENING_SPAWN_MIN, GameConfig.OPENING_SPAWN_MAX);
         } else if (phase == Phase.HAPPY_HOUR) {
-            return GameConfig.HAPPY_HOUR_SPAWN_DELAY;
+            return randomBetween(GameConfig.HAPPY_HOUR_SPAWN_MIN, GameConfig.HAPPY_HOUR_SPAWN_MAX);
         }
-        return GameConfig.RUSH_SPAWN_DELAY;
+        return randomBetween(GameConfig.RUSH_SPAWN_MIN, GameConfig.RUSH_SPAWN_MAX);
+    }
+
+    private double randomBetween(double min, double max) {
+        return min + rand.nextDouble() * (max - min);
     }
 
     private void closeBar() {
@@ -234,15 +353,14 @@ public class GameSession {
     }
 
     private void policeRaid() {
-        for (int i = 0; i < GameConfig.SEATS; i++) {
-            if (seats[i] != null) {
-                freeSeat(i);
-            }
+        if (isPoliceRaidActive()) {
+            return;
         }
-        for (GameListener listener : listeners) {
-            listener.onPoliceRaid();
-        }
-        endEvening(true);
+
+        policeRaidInProgress = true;
+        policeRaidTimer = GameConfig.POLICE_DELAY;
+
+        removeAllCustomers();
     }
 
     private void loseCustomer(int seat) {
@@ -254,30 +372,38 @@ public class GameSession {
     }
 
     private void freeSeat(int seat) {
-        seats[seat] = null;
-        for (GameListener listener : listeners) {
-            listener.onCustomerLeft(seat);
+        if (seats[seat] != null) {
+            Customer customer = seats[seat];
+            seats[seat] = null;
+            for (GameListener listener : listeners) {
+                listener.onCustomerLeft(seat, customer);
+            }
         }
     }
 
     private int findFreeSeat() {
-        openSeats.clear();
+        ArrayList<Integer> openSeats = new ArrayList<>();
         for (int i = 0; i < GameConfig.SEATS; i++) {
             if (seats[i] == null) {
                 openSeats.add(i);
             }
         }
-        if (openSeats.size() != 0) {
-            int n = rand.nextInt(openSeats.size());
-            return openSeats.get(n);
-        }
-        else {
+        if (openSeats.isEmpty()) {
             return -1;
         }
+        return openSeats.get(rand.nextInt(openSeats.size()));
     }
 
     public Customer getCustomer(int seat) {
         return seats[seat];
+    }
+
+    public Drink getOrder(int seat) {
+        Customer customer = seats[seat];
+        if (customer == null || !customer.canBeServed()) {
+            return null;
+        }
+        return customer.getOrder();
     }
 
     public ArrayList<Integer> getOccupiedSeats() {
@@ -288,6 +414,14 @@ public class GameSession {
             }
         }
         return occupied;
+    }
+
+    public String getFeedback() {
+        return feedback;
+    }
+
+    public int getFeedbackGrade() {
+        return feedbackGrade;
     }
 
     public Preparation getPreparation() {

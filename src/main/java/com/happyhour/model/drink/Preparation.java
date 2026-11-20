@@ -16,11 +16,29 @@ public class Preparation {
     }
 
     public void addIngredient(Ingredient ingredient) {
+        if (glass == null) {
+            return;
+        }
         ingredients.add(ingredient);
     }
 
     public void useTechnique(Technique technique) {
+        if (glass == null) {
+            return;
+        }
         this.technique = technique;
+    }
+
+    public boolean isReady() {
+        if (glass == null) {
+            return false;
+        }
+        for (Ingredient ingredient : ingredients) {
+            if (ingredient.isLiquid()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Glass getGlass() {
