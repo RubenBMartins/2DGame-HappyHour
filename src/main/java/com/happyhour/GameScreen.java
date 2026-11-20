@@ -5,7 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.happyhour.model.GameConfig;
+import com.happyhour.model.customer.ChildCustomer;
 import com.happyhour.model.customer.Customer;
+import com.happyhour.model.customer.GenerousCustomer;
+import com.happyhour.model.customer.PickyCustomer;
+import com.happyhour.model.customer.RushedCustomer;
 import com.happyhour.model.drink.Drink;
 import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
@@ -46,7 +50,6 @@ import javafx.scene.transform.Scale;
 import javafx.util.Duration;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.Stop;
@@ -84,7 +87,6 @@ public class GameScreen extends Canvas implements GameListener {
     private GraphicsContext backgroundBatch;
     private GraphicsContext drinkBatch;
     private GraphicsContext kickBatch;
-    private Rectangle discoOverlay;
     private Rectangle policeLightLeft;
     private Rectangle policeLightRight;
     private ColorAdjust discoHue = new ColorAdjust();
@@ -115,6 +117,11 @@ public class GameScreen extends Canvas implements GameListener {
     private ArrayList<CustomerAppears> customerAnimations = new ArrayList<>();
     private List<CustomerAppears> policeAnimations = new ArrayList<>();
     private Image policeImage;
+    private Image normalSprite;
+    private Image rushedSprite;
+    private Image pickySprite;
+    private Image generousSprite;
+    private Image childSprite;
     private HashMap<String, Image> tintCache = new HashMap<>();
     private String[] popupText = new String[GameConfig.SEATS];
     private long[] popupStart = new long[GameConfig.SEATS];
@@ -180,6 +187,24 @@ public class GameScreen extends Canvas implements GameListener {
         drinksCanvas.setMouseTransparent(true);
         kickCanvas.setMouseTransparent(true);
         policeImage = new Image(getClass().getResourceAsStream("/images/police.png"),160, 350, true, false);
+        normalSprite = new Image(getClass().getResourceAsStream("/images/customerRegular.png"), 160, 350, true, false);
+        rushedSprite = new Image(getClass().getResourceAsStream("/images/customerHurried.png"), 160, 350, true, false);
+        pickySprite = new Image(getClass().getResourceAsStream("/images/customerStrict.png"), 160, 350, true, false);
+        generousSprite = new Image(getClass().getResourceAsStream("/images/customerGenerous.png"), 160, 350, true, false);
+        childSprite = new Image(getClass().getResourceAsStream("/images/customerChild.png"), 160, 350, true, false);
+    }
+
+    private Image getSprite(Customer customer) {
+        if (customer instanceof ChildCustomer) {
+            return childSprite;
+        } else if (customer instanceof RushedCustomer) {
+            return rushedSprite;
+        } else if (customer instanceof PickyCustomer) {
+            return pickySprite;
+        } else if (customer instanceof GenerousCustomer) {
+            return generousSprite;
+        }
+        return normalSprite;
     }
 
     @Override
@@ -219,9 +244,7 @@ public class GameScreen extends Canvas implements GameListener {
         double x = 310 + (seat * 240);
         double y = 390;
 
-        customerAnimations.add(
-            new CustomerAppears(seat, x, y, customer)
-        );
+        customerAnimations.add(CustomerAppears.arrival(seat, getSprite(customer), x, y));
     }
 
     @Override
@@ -229,9 +252,7 @@ public class GameScreen extends Canvas implements GameListener {
         double x = 310 + (seat * 240);
         double y = 390;
 
-        customerAnimations.add(
-            CustomerAppears.departure(seat, customer, x, y)
-        );
+        customerAnimations.add(CustomerAppears.departure(seat, getSprite(customer), x, y));
     }
 
     @Override
@@ -247,21 +268,10 @@ public class GameScreen extends Canvas implements GameListener {
         for (int i = 0; i < 6; i++) {
             Customer customer = session.getCustomer(i);
 
-            if (customer != null) {
+            if (customer != null && !isAnimated(i)) {
                 double x = 310 + (i * 240);
                 double y = 390;
-
-                int currentSeat = i;
-
-                CustomerAppears animation = customerAnimations.stream()
-                    .filter(a -> a.getSeat() == currentSeat)
-                    .filter(a -> a.getAge() < 500)
-                    .findFirst()
-                    .orElse(null);
-
-                if (animation == null) {
-                    batch.drawImage(customer.getSprite(), x, y, 160, 350);
-                }
+                batch.drawImage(getSprite(customer), x, y, 160, 350);
             }
         }
 
@@ -294,6 +304,15 @@ public class GameScreen extends Canvas implements GameListener {
             );
             batch.restore();
         }
+    }
+
+    private boolean isAnimated(int seat) {
+        for (CustomerAppears animation : customerAnimations) {
+            if (animation.getSeat() == seat) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void resizeGame(Pane gamePane, Pane root) {
@@ -481,10 +500,6 @@ public class GameScreen extends Canvas implements GameListener {
         seat5box.setFill(Color.web("0x0051FF",0));
         seat6box.setFill(Color.web("0xAE00FF",0));
 
-        discoOverlay = new Rectangle(WIDTH, HEIGHT);
-        discoOverlay.setMouseTransparent(true);
-        discoOverlay.setBlendMode(BlendMode.MULTIPLY);
-        discoOverlay.setOpacity(0.45);
         policeLightLeft = new Rectangle(0, 0, WIDTH / 2.0, HEIGHT);
         policeLightRight = new Rectangle(WIDTH / 2.0, 0, WIDTH / 2.0, HEIGHT);
         policeLightLeft.setMouseTransparent(true);
@@ -494,7 +509,6 @@ public class GameScreen extends Canvas implements GameListener {
         gamePane.getChildren().add(backgroundCanvas);
         gamePane.getChildren().add(lightsView);
         gamePane.getChildren().add(this);
-        gamePane.getChildren().add(discoOverlay);
         gamePane.getChildren().add(policeLightLeft);
         gamePane.getChildren().add(policeLightRight);
 
@@ -552,28 +566,28 @@ public class GameScreen extends Canvas implements GameListener {
         if (!GameSettings.discoMode) {
             setEffect(null);
             lightsView.setEffect(null);
-            discoOverlay.setVisible(false);
             return;
         }
-
-        setEffect(discoHue);
-
         double time = System.currentTimeMillis() / 3000.0;
-        double hue = 0.16 + Math.sin(time) * 0.5;
-
-        discoHue.setHue(hue);
-        discoOverlay.setFill(Color.WHITE);
-        discoOverlay.setEffect(discoHue);
+        discoHue.setHue(0.16 + Math.sin(time) * 0.5);
+        setEffect(discoHue);
         lightsView.setEffect(discoHue);
     }
 
     private void setupSeat(Rectangle box, int seat, double kickX) {
         box.setOnMouseClicked(event -> {
+            if (session.isPoliceRaidActive()) {
+                return;
+            }
             if (event.getButton() == MouseButton.PRIMARY) {
                 session.serve(seat);
+                if (session.isPoliceRaidActive()) {
+                    SoundManager.play("siren");
+                }
             } else if (event.getButton() == MouseButton.SECONDARY) {
                 if (session.getCustomer(seat) != null) {
                     session.kick(seat);
+                    SoundManager.play("kick");
                     explosions.add(new Explosion(kickX - 90, 390 - 50));
                 }
             }
@@ -612,11 +626,18 @@ public class GameScreen extends Canvas implements GameListener {
         return zone;
     }
 
+    private void playSound(String name) {
+        if (!session.isPoliceRaidActive()) {
+            SoundManager.play(name);
+        }
+    }
+
     private void addGlassZone(Pane pane, double x, double y, double width, double height, Glass glass) {
         Rectangle zone = createZone(pane, x, y, width, height, glassName(glass));
         zone.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 session.chooseGlass(glass);
+                playSound("bottle");
             }
         });
     }
@@ -626,6 +647,9 @@ public class GameScreen extends Canvas implements GameListener {
         zone.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 session.addIngredient(ingredient);
+                if (session.getPreparation().getGlass() != null) {
+                    playSound("water");
+                }
             }
         });
     }
@@ -635,6 +659,9 @@ public class GameScreen extends Canvas implements GameListener {
         zone.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 session.useTechnique(technique);
+                if (session.getPreparation().getGlass() != null) {
+                    playSound("bottle");
+                }
             }
         });
     }

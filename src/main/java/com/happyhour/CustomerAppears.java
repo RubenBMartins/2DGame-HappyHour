@@ -1,7 +1,5 @@
-
 package com.happyhour;
 
-import com.happyhour.model.customer.Customer;
 import javafx.scene.image.Image;
 
 public class CustomerAppears {
@@ -15,25 +13,6 @@ public class CustomerAppears {
     private Image customerImage;
     private long startDelay;
 
-    public CustomerAppears(int seat, double x, double y, Customer customer) {
-        this.x = x;
-        this.y = y + 40;
-        this.startY = this.y;
-        this.creationTime = System.currentTimeMillis();
-        this.seat = seat;
-        this.customerImage = customer.getSprite();
-        this.opacity = 0;
-    }
-
-    public static CustomerAppears departure(int seat, Customer customer, double x, double y) {
-        CustomerAppears animation = new CustomerAppears(seat, x, y, customer);
-        animation.departing = true;
-        animation.y = y;
-        animation.startY = y;
-        animation.opacity = 1;
-        return animation;
-    }
-
     public CustomerAppears(int seat, double x, double y, Image image, long startDelay) {
         this.x = x;
         this.y = y + 40;
@@ -43,6 +22,19 @@ public class CustomerAppears {
         this.customerImage = image;
         this.opacity = 0;
         this.startDelay = startDelay;
+    }
+
+    public static CustomerAppears arrival(int seat, Image image, double x, double y) {
+        return new CustomerAppears(seat, x, y, image, 0);
+    }
+
+    public static CustomerAppears departure(int seat, Image image, double x, double y) {
+        CustomerAppears animation = new CustomerAppears(seat, x, y, image, 0);
+        animation.departing = true;
+        animation.y = y;
+        animation.startY = y;
+        animation.opacity = 1;
+        return animation;
     }
 
     public void update() {

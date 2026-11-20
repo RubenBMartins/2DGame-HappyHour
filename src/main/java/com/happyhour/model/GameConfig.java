@@ -35,7 +35,7 @@ public class GameConfig {
     public static final int PICKY_RATE = 10;
     public static final int GENEROUS_RATE = 10;
 
-    public static final int[] OPENING_ORDERS = { 30, 30, 15, 15 };
+    public static final int[] OPENING_ORDERS = { 30, 30, 25, 15 };
     public static final int[] HAPPY_HOUR_ORDERS = { 25, 25, 30, 20 };
     public static final int[] RUSH_ORDERS = { 15, 15, 35, 35 };
 }

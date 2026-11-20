@@ -4,8 +4,6 @@ import com.happyhour.model.GameConfig;
 import com.happyhour.model.drink.Drink;
 import com.happyhour.model.drink.Preparation;
 
-import javafx.scene.image.Image;
-
 public abstract class Customer {
     private Drink order;
     private double patience;
@@ -103,6 +101,4 @@ public abstract class Customer {
     }
 
     public abstract double computeTip(double baseTip, double speedBonus);
-
-    public abstract Image getSprite();
 }
