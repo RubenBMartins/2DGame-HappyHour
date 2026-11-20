@@ -7,12 +7,25 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Menu principal : Jouer, Tutoriel, Scores, Réglages, Quitter.
+ */
 public class MenuScreen extends Screen {
 
+    /**
+     * Crée le menu principal.
+     *
+     * @param app l'application
+     */
     public MenuScreen(HappyHourApp app) {
         super(app);
     }
 
+    /**
+     * Construit et affiche l'écran.
+     *
+     * @param stage la fenêtre
+     */
     @Override
     public void start(Stage stage) {
         VBox root = createLayout("Happy Hour");
@@ -37,3 +50,4 @@ public class MenuScreen extends Screen {
         display(stage, root);
     }
 }
+

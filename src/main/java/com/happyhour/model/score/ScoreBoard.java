@@ -7,17 +7,37 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * Tableau des 10 meilleurs scores, trié du plus grand au plus petit
+ * et sauvegardé dans un fichier texte (une ligne par score : pseudo;score;défaite).
+ */
 public class ScoreBoard {
+    /**
+     * Nombre maximum de scores gardés.
+     */
     public static final int MAX_ENTRIES = 10;
 
     private String filePath;
     private ArrayList<ScoreEntry> entries = new ArrayList<>();
 
+    /**
+     * Crée le tableau et charge les scores déjà enregistrés dans le fichier.
+     *
+     * @param filePath le chemin du fichier de sauvegarde
+     */
     public ScoreBoard(String filePath) {
         this.filePath = filePath;
         load();
     }
 
+    /**
+     * Ajoute un score à sa place dans le classement, garde les 10 meilleurs
+     * et sauvegarde le fichier.
+     *
+     * @param name   le pseudo du joueur (les « ; » sont retirés)
+     * @param score  le score total, en euros
+     * @param defeat true si la partie a été perdue
+     */
     public void addScore(String name, double score, boolean defeat) {
         String cleanName = name.replace(";", "");
         ScoreEntry entry = new ScoreEntry(cleanName, score, defeat);
@@ -34,6 +54,11 @@ public class ScoreBoard {
         save();
     }
 
+    /**
+     * Renvoie les scores, du meilleur au moins bon.
+     *
+     * @return la liste des scores
+     */
     public ArrayList<ScoreEntry> getEntries() {
         return entries;
     }

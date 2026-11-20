@@ -16,7 +16,14 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 
-// Dessine les verres (commandes, verre de Melvin, verre servi) avec la couleur de leur contenu
+/**
+ * Dessine les verres avec la couleur de leur contenu : les commandes dans
+ * les bulles, le verre dans les mains de Melvin et le verre servi devant le client.
+ * <p>
+ * Si la préparation correspond à un cocktail de la carte, le verre prend la couleur
+ * de ce cocktail ; sinon, il prend le mélange des couleurs des liquides.
+ * Les images teintées sont gardées en cache pour ne pas les recalculer à chaque image.
+ */
 public class DrinkPainter {
     private GraphicsContext gc;
     private RecipeBook recipeBook;
@@ -31,6 +38,12 @@ public class DrinkPainter {
     private Image wineGlass;
     private Image wine;
 
+    /**
+     * Crée le peintre et charge les images des verres et des liquides.
+     *
+     * @param gc         la zone de dessin
+     * @param recipeBook la carte, pour reconnaître les cocktails préparés
+     */
     public DrinkPainter(GraphicsContext gc, RecipeBook recipeBook) {
         this.gc = gc;
         this.recipeBook = recipeBook;
@@ -49,6 +62,14 @@ public class DrinkPainter {
         return new Image(getClass().getResourceAsStream("/images/" + file), width, 150, true, false);
     }
 
+    /**
+     * Dessine la boisson commandée par un client, dans sa bulle.
+     *
+     * @param order   la boisson commandée
+     * @param centerX le centre horizontal du verre
+     * @param topY    le haut du verre
+     * @param scale   l'échelle du dessin (1 = taille normale)
+     */
     public void drawDrink(Drink order, double centerX, double topY, double scale) {
         Color color;
         if (order.getGlass() == Glass.PINT) {
@@ -62,6 +83,14 @@ public class DrinkPainter {
         drawGlass(order.getGlass(), color, order.getGlass() == Glass.PINT, centerX, topY + height / 2, scale);
     }
 
+    /**
+     * Dessine une boisson préparée par le joueur. Ne dessine rien s'il n'y a pas de verre.
+     *
+     * @param preparation la boisson préparée
+     * @param centerX     le centre horizontal du verre
+     * @param centerY     le centre vertical du verre
+     * @param scale       l'échelle du dessin (1 = taille normale)
+     */
     public void drawPreparation(Preparation preparation, double centerX, double centerY, double scale) {
         Glass glass = preparation.getGlass();
         if (glass == null) {
@@ -229,4 +258,5 @@ public class DrinkPainter {
         return result;
     }
 }
+
 

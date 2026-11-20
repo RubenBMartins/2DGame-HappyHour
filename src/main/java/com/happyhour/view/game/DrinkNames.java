@@ -4,9 +4,24 @@ import com.happyhour.model.drink.Glass;
 import com.happyhour.model.drink.Ingredient;
 import com.happyhour.model.drink.Technique;
 
-// Noms en français des verres, ingrédients et techniques, affichés dans le jeu
+/**
+ * Noms en français des verres, ingrédients et techniques, affichés dans le jeu
+ * (ligne « EN MAIN » et texte au survol des postes).
+ */
 public class DrinkNames {
 
+    /**
+     * Classe utilitaire : elle ne sert pas à créer des objets.
+     */
+    private DrinkNames() {
+    }
+
+    /**
+     * Renvoie le nom d'un verre.
+     *
+     * @param glass le verre
+     * @return son nom en français
+     */
     public static String glassName(Glass glass) {
         switch (glass) {
             case PINT:
@@ -20,6 +35,12 @@ public class DrinkNames {
         }
     }
 
+    /**
+     * Renvoie le nom d'un ingrédient.
+     *
+     * @param ingredient l'ingrédient
+     * @return son nom en français
+     */
     public static String ingredientName(Ingredient ingredient) {
         switch (ingredient) {
             case VODKA:
@@ -53,6 +74,12 @@ public class DrinkNames {
         }
     }
 
+    /**
+     * Renvoie le nom de l'outil d'une technique.
+     *
+     * @param technique la technique
+     * @return « Cuillère » ou « Shaker »
+     */
     public static String techniqueName(Technique technique) {
         if (technique == Technique.STIR) {
             return "Cuillère";
@@ -60,4 +87,5 @@ public class DrinkNames {
         return "Shaker";
     }
 }
+
 

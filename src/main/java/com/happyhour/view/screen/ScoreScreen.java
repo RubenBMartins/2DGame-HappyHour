@@ -8,14 +8,28 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Tableau des 10 meilleurs scores, avec la mention « défaite » si la partie a été perdue.
+ */
 public class ScoreScreen extends Screen {
     private ScoreBoard scoreBoard;
 
+    /**
+     * Crée l'écran des scores.
+     *
+     * @param app        l'application
+     * @param scoreBoard le tableau des scores
+     */
     public ScoreScreen(HappyHourApp app, ScoreBoard scoreBoard) {
         super(app);
         this.scoreBoard = scoreBoard;
     }
 
+    /**
+     * Construit et affiche l'écran.
+     *
+     * @param stage la fenêtre
+     */
     @Override
     public void start(Stage stage) {
         VBox root = createLayout("Meilleurs scores");
@@ -43,3 +57,4 @@ public class ScoreScreen extends Screen {
         display(stage, root);
     }
 }
+

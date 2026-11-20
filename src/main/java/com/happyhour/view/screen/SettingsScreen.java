@@ -13,6 +13,10 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Réglages : volume de la musique, bruitages, taille de l'écran et Mode Disco.
+ * Accessible depuis le menu, la pause et l'icône d'engrenage du jeu.
+ */
 public class SettingsScreen extends Screen {
     private static final String TEXT_STYLE = "-fx-text-fill: white;"
             + "-fx-font-family: 'Monospaced';"
@@ -20,11 +24,22 @@ public class SettingsScreen extends Screen {
             + "-fx-font-size: 26px;";
     private Runnable onBack;
 
+    /**
+     * Crée l'écran des réglages.
+     *
+     * @param app    l'application
+     * @param onBack l'action du bouton Retour (revenir à l'écran précédent)
+     */
     public SettingsScreen(HappyHourApp app, Runnable onBack) {
         super(app);
         this.onBack = onBack;
     }
 
+    /**
+     * Construit et affiche l'écran.
+     *
+     * @param stage la fenêtre
+     */
     @Override
     public void start(Stage stage) {
         VBox root = createLayout("Réglages");
@@ -87,3 +102,4 @@ public class SettingsScreen extends Screen {
         }
     }
 }
+

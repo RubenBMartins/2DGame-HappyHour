@@ -10,16 +10,33 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Bilan de fin de soirée : chiffre d'affaires, pourboires, clients servis,
+ * boisson la plus servie et score total. Le joueur peut entrer son pseudo
+ * pour enregistrer son score.
+ */
 public class SummaryScreen extends Screen {
     private GameSession session;
     private ScoreBoard scoreBoard;
 
+    /**
+     * Crée l'écran de bilan.
+     *
+     * @param app        l'application
+     * @param session    la soirée terminée
+     * @param scoreBoard le tableau des scores, pour enregistrer le score
+     */
     public SummaryScreen(HappyHourApp app, GameSession session, ScoreBoard scoreBoard) {
         super(app);
         this.session = session;
         this.scoreBoard = scoreBoard;
     }
 
+    /**
+     * Construit et affiche l'écran.
+     *
+     * @param stage la fenêtre
+     */
     @Override
     public void start(Stage stage) {
         String title = "Fin de la soirée";
@@ -64,3 +81,4 @@ public class SummaryScreen extends Screen {
         return String.format("%.2f €", amount);
     }
 }
+

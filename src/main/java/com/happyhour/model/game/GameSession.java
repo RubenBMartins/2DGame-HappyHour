@@ -17,6 +17,14 @@ import com.happyhour.model.drink.RecipeBook;
 import com.happyhour.model.drink.Technique;
 import com.happyhour.model.score.CashRegister;
 
+/**
+ * Une soirée de jeu : c'est le cœur du modèle.
+ * <p>
+ * Elle gère les 6 places du comptoir, l'arrivée des clients, la boisson
+ * en préparation, le service, les coups de pied, la caisse, les phases,
+ * la descente de police et la fin de partie. Elle ne dépend pas de JavaFX :
+ * elle prévient l'affichage par des {@link GameListener} (pattern Observer).
+ */
 public class GameSession {
     private Customer[] seats = new Customer[GameConfig.SEATS];
     private Preparation preparation = new Preparation();
@@ -43,14 +51,27 @@ public class GameSession {
     private boolean policeArrivalInProgress = false;
     private double policeArrivalTimer = 0;
 
+    /**
+     * Crée une nouvelle soirée et tire le délai d'arrivée du premier client.
+     */
     public GameSession() {
         nextSpawnDelay = randomBetween(GameConfig.FIRST_CUSTOMER_MIN, GameConfig.FIRST_CUSTOMER_MAX);
     }
 
+    /**
+     * Ajoute un écouteur qui sera prévenu des événements de la partie.
+     *
+     * @param listener l'écouteur (en pratique, l'écran de jeu)
+     */
     public void addListener(GameListener listener) {
         listeners.add(listener);
     }
 
+    /**
+     * Prend un verre pour la boisson en préparation.
+     *
+     * @param glass le verre choisi
+     */
     public void chooseGlass(Glass glass) {
         if (isPoliceRaidActive()) {
             return;
@@ -58,6 +79,11 @@ public class GameSession {
         preparation.chooseGlass(glass);
     }
 
+    /**
+     * Ajoute un ingrédient à la boisson en préparation (ignoré sans verre).
+     *
+     * @param ingredient l'ingrédient ajouté
+     */
     public void addIngredient(Ingredient ingredient) {
         if (isPoliceRaidActive()) {
             return;
@@ -65,6 +91,11 @@ public class GameSession {
         preparation.addIngredient(ingredient);
     }
 
+    /**
+     * Utilise la cuillère ou le shaker sur la boisson en préparation (ignoré sans verre).
+     *
+     * @param technique la technique utilisée
+     */
     public void useTechnique(Technique technique) {
         if (isPoliceRaidActive()) {
             return;
@@ -72,6 +103,12 @@ public class GameSession {
         preparation.useTechnique(technique);
     }
 
+    /**
+     * Installe un client à une place et prévient les écouteurs.
+     *
+     * @param seat     la place (0 à 5)
+     * @param customer le client à installer
+     */
     public void placeCustomer(int seat, Customer customer) {
         seats[seat] = customer;
         for (GameListener listener : listeners) {
@@ -87,10 +124,25 @@ public class GameSession {
         }
     }
 
+    /**
+     * Indique si la descente de police est en cours : plus aucune action n'est possible.
+     *
+     * @return true pendant la descente de police
+     */
     public boolean isPoliceRaidActive() {
         return policeRaidInProgress || policeArrivalInProgress;
     }
 
+    /**
+     * Sert la boisson en préparation au client de cette place.
+     * <p>
+     * Ne fait rien si la boisson n'est pas prête ou si le client ne peut pas
+     * être servi. Un enfant servi déclenche la descente de police.
+     * Sinon, la boisson est notée : le client Difficile peut la refuser ;
+     * autrement, il paie le prix × note / 10, plus son pourboire.
+     *
+     * @param seat la place du client servi
+     */
     public void serve(int seat) {
         Customer customer = seats[seat];
         if (over || closed || paused || isPoliceRaidActive()) {
@@ -145,6 +197,12 @@ public class GameSession {
         feedbackTimer = GameConfig.FEEDBACK_TIME;
     }
 
+    /**
+     * Expulse d'un coup de pied le client de cette place.
+     * Il compte comme client perdu, sauf si c'est un enfant.
+     *
+     * @param seat la place du client expulsé
+     */
     public void kick(int seat) {
         if (isPoliceRaidActive()) {
             return;
@@ -161,12 +219,18 @@ public class GameSession {
         }
     }
 
+    /**
+     * Met la partie en pause, ou la reprend.
+     */
     public void togglePause() {
         if (!over && !isPoliceRaidActive()) {
             paused = !paused;
         }
     }
 
+    /**
+     * Touche de démo E : fait apparaître un enfant à une place libre.
+     */
     public void spawnChild() {
         if (isPoliceRaidActive()) {
             return;
@@ -179,6 +243,10 @@ public class GameSession {
         }
     }
 
+    /**
+     * Fait arriver un client au hasard à une place libre et lui donne sa commande.
+     * Aussi utilisée par la touche de démo O.
+     */
     public void spawnCustomer() {
         if (isPoliceRaidActive()) {
             return;
@@ -191,6 +259,9 @@ public class GameSession {
         }
     }
 
+    /**
+     * Touche de démo N : passe directement à la phase suivante.
+     */
     public void skipPhase() {
         if (isPoliceRaidActive()) {
             return;
@@ -204,6 +275,9 @@ public class GameSession {
         }
     }
 
+    /**
+     * Touche de démo A : saute aux 15 dernières secondes de la soirée.
+     */
     public void countdownSkip() {
         if (isPoliceRaidActive()) {
             return;
@@ -211,6 +285,15 @@ public class GameSession {
         elapsed = GameConfig.COUNTDOWN_SKIP_TIME;
     }
 
+    /**
+     * Fait avancer la soirée. Appelée à chaque image par la boucle de jeu.
+     * <p>
+     * Gère la descente de police, la pause, le message de note, le changement
+     * de phase, la fermeture à 5:00, les clients (patience, départs)
+     * et l'arrivée des nouveaux clients.
+     *
+     * @param deltaTime le temps écoulé depuis la dernière image, en secondes
+     */
     public void update(double deltaTime) {
         if (over) {
             return;
@@ -304,6 +387,11 @@ public class GameSession {
         customer.setOrder(recipeBook.randomDrink(category));
     }
 
+    /**
+     * Calcule la phase en cours selon le temps écoulé.
+     *
+     * @return la phase en cours
+     */
     public Phase getPhase() {
         if (elapsed < GameConfig.HAPPY_HOUR_START) {
             return Phase.OPENING;
@@ -394,10 +482,22 @@ public class GameSession {
         return openSeats.get(rand.nextInt(openSeats.size()));
     }
 
+    /**
+     * Renvoie le client assis à cette place.
+     *
+     * @param seat la place (0 à 5)
+     * @return le client, ou null si la place est libre
+     */
     public Customer getCustomer(int seat) {
         return seats[seat];
     }
 
+    /**
+     * Renvoie la commande du client de cette place, s'il attend encore.
+     *
+     * @param seat la place (0 à 5)
+     * @return la boisson commandée, ou null s'il n'y a personne à servir
+     */
     public Drink getOrder(int seat) {
         Customer customer = seats[seat];
         if (customer == null || !customer.canBeServed()) {
@@ -406,6 +506,11 @@ public class GameSession {
         return customer.getOrder();
     }
 
+    /**
+     * Renvoie les places occupées.
+     *
+     * @return les numéros des places occupées
+     */
     public ArrayList<Integer> getOccupiedSeats() {
         ArrayList<Integer> occupied = new ArrayList<>();
         for (int seat = 0; seat < GameConfig.SEATS; seat++) {
@@ -416,51 +521,112 @@ public class GameSession {
         return occupied;
     }
 
+    /**
+     * Renvoie le message de note affiché après un service.
+     *
+     * @return le message, ou null s'il n'y en a pas en ce moment
+     */
     public String getFeedback() {
         return feedback;
     }
 
+    /**
+     * Renvoie la note du dernier service, pour choisir la couleur du message.
+     *
+     * @return la note sur 10
+     */
     public int getFeedbackGrade() {
         return feedbackGrade;
     }
 
+    /**
+     * Renvoie la boisson en cours de préparation.
+     *
+     * @return la préparation en cours
+     */
     public Preparation getPreparation() {
         return preparation;
     }
 
+    /**
+     * Renvoie la carte du bar.
+     *
+     * @return la carte
+     */
     public RecipeBook getRecipeBook() {
         return recipeBook;
     }
 
+    /**
+     * Renvoie la caisse de la soirée.
+     *
+     * @return la caisse
+     */
     public CashRegister getRegister() {
         return register;
     }
 
+    /**
+     * Renvoie le total des pourboires.
+     *
+     * @return les pourboires, en euros
+     */
     public double getTips() {
         return register.getTips();
     }
 
+    /**
+     * Renvoie le nombre de clients perdus.
+     *
+     * @return le nombre de clients perdus
+     */
     public int getLostCustomers() {
         return lostCustomers;
     }
 
+    /**
+     * Renvoie le temps écoulé depuis le début de la soirée.
+     *
+     * @return le temps écoulé, en secondes
+     */
     public double getElapsed() {
         return elapsed;
     }
 
+    /**
+     * Indique si le bar est fermé (après 5:00).
+     *
+     * @return true si le bar est fermé
+     */
     public boolean isClosed() {
         return closed;
     }
 
+    /**
+     * Indique si la partie est en pause.
+     *
+     * @return true en pause
+     */
     public boolean isPaused() {
         return paused;
     }
 
+    /**
+     * Indique si la soirée est terminée.
+     *
+     * @return true si la partie est finie
+     */
     public boolean isOver() {
         return over;
     }
 
+    /**
+     * Indique si la partie a été perdue.
+     *
+     * @return true en cas de défaite
+     */
     public boolean isDefeat() {
         return defeat;
     }
 }
+

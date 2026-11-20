@@ -53,8 +53,23 @@ import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.Stop;
 
+/**
+ * Écran de jeu (la vue du MVC) : dessine le bar, les clients, les commandes,
+ * les mains de Melvin, le HUD et tous les effets visuels.
+ * <p>
+ * Il écoute la {@link GameSession} (pattern Observer) pour lancer les animations
+ * quand un client arrive, part ou est servi, et pour la descente de police.
+ * Le jeu est dessiné en 1980 × 1080, puis mis à l'échelle de la fenêtre
+ * en gardant le format 16:9.
+ */
 public class GameScreen extends Canvas implements GameListener {
+    /**
+     * Largeur de référence de l'écran de jeu, en pixels.
+     */
     public static final int WIDTH = 1980;
+    /**
+     * Hauteur de référence de l'écran de jeu, en pixels.
+     */
     public static final int HEIGHT = 1080;
     private static final double POPUP_TIME = 1500;
     private Image table;
@@ -117,14 +132,29 @@ public class GameScreen extends Canvas implements GameListener {
     private int lastCountdownSecond = -1;
     private boolean hasGlass = false;
 
+    /**
+     * Rien à afficher au changement de phase.
+     *
+     * @param phase la nouvelle phase
+     */
     @Override
     public void onPhaseChanged(Phase phase) {
     }
 
+    /**
+     * Rien à faire : la caisse du HUD est mise à jour à chaque image.
+     *
+     * @param tips le nouveau total de la caisse
+     */
     @Override
     public void onScoreChanged(double tips) {
     }
 
+    /**
+     * Crée l'écran de jeu et charge les images du décor et des personnages.
+     *
+     * @param app l'application, pour changer d'écran
+     */
     public GameScreen(HappyHourApp app) {
         super(WIDTH, HEIGHT);
         this.app = app;
@@ -177,6 +207,11 @@ public class GameScreen extends Canvas implements GameListener {
         return normalSprite;
     }
 
+    /**
+     * Arrête la boucle de jeu et affiche le bilan.
+     *
+     * @param defeat true si la partie est perdue
+     */
     @Override
     public void onEveningOver(boolean defeat) {
         gameLoop.stop();
@@ -199,6 +234,9 @@ public class GameScreen extends Canvas implements GameListener {
         return view;
     }
 
+    /**
+     * Fait entrer six policiers un par un, à chaque place du comptoir.
+     */
     @Override
     public void onPoliceRaid() {
         for (int i = 0; i < 6; i++) {
@@ -209,6 +247,12 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
+    /**
+     * Lance l'animation d'arrivée du client.
+     *
+     * @param seat     la place du client
+     * @param customer le client arrivé
+     */
     @Override
     public void onCustomerArrived(int seat, Customer customer) {
         double x = seatX(seat);
@@ -217,6 +261,12 @@ public class GameScreen extends Canvas implements GameListener {
         customerAnimations.add(CustomerAnimation.arrival(seat, getSprite(customer), x, y));
     }
 
+    /**
+     * Lance l'animation de départ du client.
+     *
+     * @param seat     la place libérée
+     * @param customer le client parti
+     */
     @Override
     public void onCustomerLeft(int seat, Customer customer) {
         double x = seatX(seat);
@@ -225,6 +275,12 @@ public class GameScreen extends Canvas implements GameListener {
         customerAnimations.add(CustomerAnimation.departure(seat, getSprite(customer), x, y));
     }
 
+    /**
+     * Affiche le gain « +X € » au-dessus du client et joue le bruit de la caisse.
+     *
+     * @param seat   la place du client
+     * @param amount le gain (prix + pourboire), en euros
+     */
     @Override
     public void onCustomerServed(int seat, double amount) {
         popupText[seat] = "+" + String.format("%.0f", amount) + " €";
@@ -276,6 +332,12 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
+    /**
+     * Calcule la position horizontale d'une place du comptoir.
+     *
+     * @param seat la place (0 à 5)
+     * @return la position x du bord gauche de la place
+     */
     public static double seatX(int seat) {
         return 310 + seat * 240;
     }
@@ -380,6 +442,12 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
+    /**
+     * Lance une nouvelle partie : crée la soirée, le contrôleur, le HUD,
+     * le livre de recettes et les gyrophares, puis démarre la boucle de jeu.
+     *
+     * @param stage la fenêtre du jeu
+     */
     public void start(Stage stage) {
         this.stage = stage;
         session = new GameSession();
@@ -525,6 +593,12 @@ public class GameScreen extends Canvas implements GameListener {
         lightsView.setEffect(discoHue);
     }
 
+    /**
+     * Prépare le texte de survol : il s'affiche après 0,5 seconde sans bouger la souris.
+     *
+     * @param text  le texte à afficher
+     * @param event l'événement de la souris
+     */
     public void moveHover(String text, MouseEvent event) {
         Point2D point = gamePane.sceneToLocal(event.getSceneX(), event.getSceneY());
         double dx = point.getX() - hoverX;
@@ -539,16 +613,28 @@ public class GameScreen extends Canvas implements GameListener {
         hoverTimer.playFromStart();
     }
 
+    /**
+     * Cache le texte de survol.
+     */
     public void stopHover() {
         hoverTimer.stop();
         hoverLabel.setVisible(false);
     }
 
+    /**
+     * Affiche un texte quand la souris reste sur un élément.
+     *
+     * @param node l'élément survolé
+     * @param text le texte à afficher
+     */
     public void installHover(Node node, String text) {
         node.addEventHandler(MouseEvent.MOUSE_MOVED, event -> moveHover(text, event));
         node.addEventHandler(MouseEvent.MOUSE_EXITED, event -> stopHover());
     }
 
+    /**
+     * Dessine les bulles de commande, les jauges de patience, les verres servis et les gains.
+     */
     public void renderOrders() {
         drinkBatch.clearRect(0, 0, WIDTH, HEIGHT);
         for (int seat = 0; seat < GameConfig.SEATS; seat++) {
@@ -616,10 +702,18 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
+    /**
+     * Affiche l'impact du coup de pied à une place.
+     *
+     * @param seat la place du client expulsé
+     */
     public void showKick(int seat) {
         explosions.add(new Explosion(seatX(seat) - 120, 340));
     }
 
+    /**
+     * Met la partie en pause et affiche le menu pause.
+     */
     public void pause() {
         if (session.isOver()) {
             return;
@@ -631,6 +725,9 @@ public class GameScreen extends Canvas implements GameListener {
         new PauseScreen(app, this).start(stage);
     }
 
+    /**
+     * Met la partie en pause et ouvre les réglages.
+     */
     public void openSettings() {
         if (session.isOver() || session.isPoliceRaidActive()) {
             return;
@@ -642,6 +739,9 @@ public class GameScreen extends Canvas implements GameListener {
         new SettingsScreen(app, () -> resume()).start(stage);
     }
 
+    /**
+     * Revient à la partie et la reprend.
+     */
     public void resume() {
         stage.getScene().setRoot(root);
         controller.installKeys(stage.getScene());
@@ -650,21 +750,35 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
+    /**
+     * Arrête la partie et en lance une nouvelle.
+     */
     public void restart() {
         gameLoop.stop();
         app.showGame();
     }
 
+    /**
+     * Arrête la partie et revient au menu.
+     */
     public void backToMenu() {
         gameLoop.stop();
         app.showMenu();
     }
 
+    /**
+     * Arrête la partie et ferme le jeu.
+     */
     public void quit() {
         gameLoop.stop();
         Platform.exit();
     }
 
+    /**
+     * Affiche le bilan de la soirée.
+     *
+     * @param session la soirée terminée
+     */
     public void endGame(GameSession session) {
         app.showSummary(session);
     }
@@ -686,6 +800,11 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
+    /**
+     * Redessine tout l'écran. Appelée à chaque image par la boucle de jeu :
+     * HUD, Mode Disco, gyrophares, clients, comptoir, commandes, impacts,
+     * bras de Melvin et verre en main.
+     */
     public void render() {
         updateHud();
         renderDisco();
@@ -725,4 +844,5 @@ public class GameScreen extends Canvas implements GameListener {
         painter.drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
     }
 }
+
 

@@ -3,10 +3,18 @@ package com.happyhour.model.drink;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * Carte du bar : contient les 8 boissons du jeu et leurs recettes.
+ * Elle sert à tirer au hasard la commande d'un client.
+ */
 public class RecipeBook {
     private ArrayList<Drink> drinks = new ArrayList<>();
     private Random random = new Random();
 
+    /**
+     * Crée la carte avec la bière, le vin, les 3 cocktails stirred
+     * et les 3 cocktails shaken.
+     */
     public RecipeBook() {
         drinks.add(new Beer());
         drinks.add(new Wine());
@@ -58,6 +66,12 @@ public class RecipeBook {
         drinks.add(new ShakenCocktail("Cosmopolitan", cosmopolitan));
     }
 
+    /**
+     * Tire au hasard une boisson de la catégorie demandée.
+     *
+     * @param category la catégorie voulue (bière, vin, stirred ou shaken)
+     * @return une boisson de cette catégorie
+     */
     public Drink randomDrink(DrinkCategory category) {
         ArrayList<Drink> matching = new ArrayList<>();
         for (Drink drink : drinks) {
@@ -68,6 +82,11 @@ public class RecipeBook {
         return matching.get(random.nextInt(matching.size()));
     }
 
+    /**
+     * Renvoie toutes les boissons de la carte.
+     *
+     * @return toutes les boissons de la carte
+     */
     public ArrayList<Drink> getDrinks() {
         return drinks;
     }

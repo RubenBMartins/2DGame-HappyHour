@@ -13,6 +13,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Tutoriel en 7 pages illustrées. On change de page avec les boutons
+ * Précédent / Suivant ou les flèches du clavier.
+ */
 public class TutorialScreen extends Screen {
     private static final int PAGES = 7;
     private int page = 1;
@@ -22,10 +26,20 @@ public class TutorialScreen extends Screen {
     private Button nextButton;
     private EventHandler<KeyEvent> arrowKeys;
 
+    /**
+     * Crée le tutoriel.
+     *
+     * @param app l'application
+     */
     public TutorialScreen(HappyHourApp app) {
         super(app);
     }
 
+    /**
+     * Construit et affiche l'écran.
+     *
+     * @param stage la fenêtre
+     */
     @Override
     public void start(Stage stage) {
         this.stage = stage;
@@ -98,3 +112,4 @@ public class TutorialScreen extends Screen {
         app.showMenu();
     }
 }
+

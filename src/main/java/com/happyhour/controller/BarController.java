@@ -18,17 +18,39 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-// Contrôleur : transforme les clics et les touches du joueur en actions sur le modèle (GameSession)
+/**
+ * Contrôleur du jeu (MVC) : transforme les clics et les touches du joueur
+ * en actions sur le modèle ({@link GameSession}).
+ * <p>
+ * Il crée des zones cliquables invisibles par-dessus le décor : les 6 places
+ * du comptoir, les postes du bar (verres, bouteilles, glaçons, garnish,
+ * cuillère, shaker) et les bulles de commande. Il joue aussi les bruitages
+ * liés aux actions.
+ */
 public class BarController {
     private GameSession session;
     private GameScreen screen;
 
+    /**
+     * Crée le contrôleur.
+     *
+     * @param session la soirée en cours
+     * @param screen  l'écran de jeu, pour les effets visuels (coup de pied, survol, pause)
+     */
     public BarController(GameSession session, GameScreen screen) {
         this.session = session;
         this.screen = screen;
     }
 
     // Crée toutes les zones cliquables : les 6 places, les postes du bar et les bulles de commande
+    /**
+     * Crée toutes les zones cliquables : les 6 places, les postes du bar
+     * et les bulles de commande.
+     * <p>
+     * Sur une place : clic gauche pour servir, clic droit pour un coup de pied.
+     *
+     * @param pane le panneau du jeu où ajouter les zones
+     */
     public void createZones(Pane pane) {
         for (int seat = 0; seat < GameConfig.SEATS; seat++) {
             Rectangle seatBox = new Rectangle(GameScreen.seatX(seat), 390, 160, 290);
@@ -152,6 +174,13 @@ public class BarController {
         }
     }
 
+    /**
+     * Installe les touches du clavier : Espace pour la pause,
+     * et les touches de démo E (enfant), N (phase suivante),
+     * O (nouveau client) et A (15 dernières secondes).
+     *
+     * @param scene la scène JavaFX du jeu
+     */
     public void installKeys(Scene scene) {
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.SPACE) {
@@ -170,4 +199,5 @@ public class BarController {
         });
     }
 }
+
 

@@ -8,14 +8,29 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Menu pause : Continuer, Recommencer, Réglages, Retour au menu, Quitter.
+ * La barre Espace reprend aussi la partie.
+ */
 public class PauseScreen extends Screen {
     private GameScreen game;
 
+    /**
+     * Crée le menu pause.
+     *
+     * @param app  l'application
+     * @param game la partie en pause
+     */
     public PauseScreen(HappyHourApp app, GameScreen game) {
         super(app);
         this.game = game;
     }
 
+    /**
+     * Construit et affiche l'écran.
+     *
+     * @param stage la fenêtre
+     */
     @Override
     public void start(Stage stage) {
         VBox root = createLayout("Pause");
@@ -46,3 +61,4 @@ public class PauseScreen extends Screen {
         });
     }
 }
+
