@@ -18,7 +18,7 @@ public class HappyHourApp extends Application {
         stage.setResizable(true);
         stage.setMaximized(true);
 
-        music = new MusicPlayer("/sounds/music.mp3");
+        music = new MusicPlayer("/sounds/la_suze_a_nova.mp3");
         SoundManager.load("kick", "kick.mp3");
         SoundManager.load("bottle", "bottle.mp3");
         SoundManager.load("water", "water.mp3");

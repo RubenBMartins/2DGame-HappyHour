@@ -23,7 +23,7 @@ countdown.mp3, bruit du décompte final :
 https://opengameart.org
 https://opengameart.org/content/race-start-countdown
 
-music.mp3, musique du jeu :
+la_suze_a_nova.mp3, musique du jeu :
 
 Théophile Bonnamour
 https://soundcloud.com/skybassman-b
