@@ -651,6 +651,8 @@ public class GameScreen extends Canvas implements GameListener {
                 session.skipPhase();
             } else if (event.getCode() == KeyCode.O) {
                 session.spawnCustomer();
+            } else if (event.getCode() == KeyCode.A) {
+                session.countdownSkip();
             }
         });
     }

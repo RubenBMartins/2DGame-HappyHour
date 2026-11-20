@@ -214,6 +214,13 @@ public class GameSession {
         }
     }
 
+    public void countdownSkip() {
+        if (isPoliceRaidActive()) {
+            return;
+        }
+        elapsed = 285;
+    }
+
     public void update(double deltaTime) {
         if (over) {
             return;
