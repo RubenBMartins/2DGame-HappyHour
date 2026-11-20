@@ -24,6 +24,7 @@ public class HappyHourApp extends Application {
         SoundManager.load("water", "water.mp3");
         SoundManager.load("countdown", "countdown.mp3");
         SoundManager.load("siren", "siren.mp3");
+        SoundManager.load("cash", "cash.mp3");
         music.play();
 
         showMenu();

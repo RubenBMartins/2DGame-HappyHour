@@ -214,6 +214,7 @@ public class GameScreen extends Canvas implements GameListener {
     public void onCustomerServed(int seat, double amount) {
         popupText[seat] = "+" + String.format("%.0f", amount) + " €";
         popupStart[seat] = System.currentTimeMillis();
+        SoundManager.play("cash");
     }
 
     private void renderCustomers() {
