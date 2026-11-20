@@ -16,8 +16,8 @@ Le joueur incarne **Melvin**, barman d'un bar chic. Pendant une soirée de 5 min
 ### Commandes
 
 ```bash
-git clone <url du dépôt>
-cd <dossier du projet>
+git clone git@github.com:EpitechMscProPromo2029/T-JAV-501-MAR-5-1-2d_game-3.git
+cd T-JAV-501-MAR-5-1-2d_game-3
 mvn javafx:run
 ```
 
