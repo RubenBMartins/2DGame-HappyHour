@@ -32,3 +32,8 @@ la_suze_a_nova.mp3, musique du jeu :
 
 Théophile Bonnamour
 https://soundcloud.com/skybassman-b
+
+le_rush_du_bistrot.mp3, musique secrète :
+
+Théophile Bonnamour
+https://soundcloud.com/skybassman-b
