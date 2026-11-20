@@ -26,7 +26,7 @@ public class ScoreScreen extends Screen {
 
         int rank = 1;
         for (ScoreEntry entry : scoreBoard.getEntries()) {
-            String line = rank + ". " + entry.getName() + " : " + entry.getScore() + " €";
+            String line = rank + ". " + entry.getName() + " : " + String.format("%.2f €", entry.getScore());
             if (entry.isDefeat()) {
                 line = line + " (défaite)";
             }

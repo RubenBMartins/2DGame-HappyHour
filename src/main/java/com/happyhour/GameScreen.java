@@ -406,10 +406,6 @@ public class GameScreen extends Canvas implements GameListener {
         }
     }
 
-    public void kickBoom(double x, double y) {
-        explosions.add(new Explosion(x - 90, y - 50));
-    }
-
     public void start(Stage stage) {
         this.stage = stage;
         gamePane = new Pane();

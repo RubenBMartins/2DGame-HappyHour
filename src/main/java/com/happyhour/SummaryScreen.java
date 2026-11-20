@@ -34,11 +34,11 @@ public class SummaryScreen extends Screen {
         }
 
         VBox card = createCard();
-        card.getChildren().add(createText("Chiffre d'affaires : " + register.getRevenue() + " €"));
-        card.getChildren().add(createText("Pourboires : " + register.getTips() + " €"));
+        card.getChildren().add(createText("Chiffre d'affaires : " + formatMoney(register.getRevenue())));
+        card.getChildren().add(createText("Pourboires : " + formatMoney(register.getTips())));
         card.getChildren().add(createText("Clients servis : " + register.getServedCustomers()));
         card.getChildren().add(createText("Boisson la plus servie : " + mostServed));
-        card.getChildren().add(createHighlight("Score total : " + register.getTotal() + " €"));
+        card.getChildren().add(createHighlight("Score total : " + formatMoney(register.getTotal())));
         root.getChildren().add(card);
 
         TextField nameField = createTextField("Ton pseudo");
@@ -57,5 +57,9 @@ public class SummaryScreen extends Screen {
 
         root.getChildren().addAll(nameField, saveButton, skipButton);
         display(stage, root);
+    }
+
+    private String formatMoney(double amount) {
+        return String.format("%.2f €", amount);
     }
 }

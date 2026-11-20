@@ -10,6 +10,9 @@ public class GameConfig {
     public static final double FORCE_TIME = 150;
     public static final double RUSH_START = 180;
     public static final double EVENING_END = 300;
+    public static final double COUNTDOWN_SKIP_TIME = 285;
+    public static final double POLICE_DELAY = 0.5;
+    public static final double POLICE_ARRIVAL_TIME = 2.915;
 
     public static final double OPENING_SPAWN_MIN = 5;
     public static final double OPENING_SPAWN_MAX = 10;

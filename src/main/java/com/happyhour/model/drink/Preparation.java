@@ -60,24 +60,4 @@ public class Preparation {
     public boolean isEmpty() {
         return glass == null && ingredients.isEmpty();
     }
-
-    public Ingredient getMainAlcohol() {
-        for (Ingredient ingredient : ingredients) {
-            if (glass == Glass.PINT && ingredient == Ingredient.BEER) {
-                return ingredient;
-            }
-
-            if (glass == Glass.WINE_GLASS && ingredient == Ingredient.WHITE_WINE) {
-                return ingredient;
-            }
-
-            if ((glass == Glass.MARTINI || glass == Glass.HIGHBALL)
-                    && (ingredient == Ingredient.VODKA
-                    || ingredient == Ingredient.GIN
-                    || ingredient == Ingredient.TEQUILA)) {
-                return ingredient;
-            }
-        }
-        return null;
-    }
 }

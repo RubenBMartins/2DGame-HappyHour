@@ -96,9 +96,5 @@ public abstract class Customer {
         return maxPatience;
     }
 
-    public CustomerState getState() {
-        return state;
-    }
-
     public abstract double computeTip(double baseTip, double speedBonus);
 }

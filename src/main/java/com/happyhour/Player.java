@@ -4,8 +4,6 @@ import javafx.scene.image.Image;
 public class Player {
     private Image arm;
     private Image armClench;
-    final double playerX;
-    final double playerY;
     private double mouseX;
     private double mouseY;
     public Player() {
@@ -13,8 +11,6 @@ public class Player {
         armClench = new Image(getClass().getResourceAsStream("/images/armClench.png"),1580, 320, true, false);
         mouseX = 0;
         mouseY = 0;
-        playerX = 990;
-        playerY = 1080;
     }
     public double getX() {
         return mouseX;
@@ -35,3 +31,4 @@ public class Player {
         mouseY = y;
     }
 }
+

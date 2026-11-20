@@ -34,7 +34,6 @@ public class GameSession {
     private boolean paused = false;
     private boolean over = false;
     private boolean defeat = false;
-    private ArrayList<Integer> openSeats = new ArrayList<Integer>();
     private Random rand = new Random();
     private String feedback = null;
     private int feedbackGrade = 0;
@@ -93,15 +92,11 @@ public class GameSession {
     }
 
     public void serve(int seat) {
-        if (isPoliceRaidActive()) {
-            return;
-        }
         Customer customer = seats[seat];
-        if (over || closed || paused || customer == null || !customer.canBeServed()) {
+        if (over || closed || paused || isPoliceRaidActive()) {
             return;
         }
-
-        if (!preparation.isReady()) {
+        if (customer == null || !customer.canBeServed() || !preparation.isReady()) {
             return;
         }
 
@@ -213,7 +208,7 @@ public class GameSession {
         if (isPoliceRaidActive()) {
             return;
         }
-        elapsed = 285;
+        elapsed = GameConfig.COUNTDOWN_SKIP_TIME;
     }
 
     public void update(double deltaTime) {
@@ -222,7 +217,7 @@ public class GameSession {
         }
 
         if (policeRaidInProgress) {
-            policeRaidTimer -= deltaTime;
+            policeRaidTimer = policeRaidTimer - deltaTime;
 
             if (policeRaidTimer <= 0) {
                 policeRaidInProgress = false;
@@ -232,13 +227,13 @@ public class GameSession {
                     listener.onPoliceRaid();
                 }
 
-                policeArrivalTimer = 2.915;
+                policeArrivalTimer = GameConfig.POLICE_ARRIVAL_TIME;
             }
             return;
         }
 
         if (policeArrivalInProgress) {
-            policeArrivalTimer -= deltaTime;
+            policeArrivalTimer = policeArrivalTimer - deltaTime;
 
             if (policeArrivalTimer <= 0) {
                 policeArrivalInProgress = false;
@@ -363,7 +358,7 @@ public class GameSession {
         }
 
         policeRaidInProgress = true;
-        policeRaidTimer = 0.5;
+        policeRaidTimer = GameConfig.POLICE_DELAY;
 
         removeAllCustomers();
     }
@@ -378,7 +373,7 @@ public class GameSession {
 
     private void freeSeat(int seat) {
         if (seats[seat] != null) {
-            Customer customer = this.getCustomer(seat);
+            Customer customer = seats[seat];
             seats[seat] = null;
             for (GameListener listener : listeners) {
                 listener.onCustomerLeft(seat, customer);
@@ -387,18 +382,16 @@ public class GameSession {
     }
 
     private int findFreeSeat() {
-        openSeats.clear();
+        ArrayList<Integer> openSeats = new ArrayList<>();
         for (int i = 0; i < GameConfig.SEATS; i++) {
             if (seats[i] == null) {
                 openSeats.add(i);
             }
         }
-        if (openSeats.size() != 0) {
-            int n = rand.nextInt(openSeats.size());
-            return openSeats.get(n);
-        } else {
+        if (openSeats.isEmpty()) {
             return -1;
         }
+        return openSeats.get(rand.nextInt(openSeats.size()));
     }
 
     public Customer getCustomer(int seat) {
