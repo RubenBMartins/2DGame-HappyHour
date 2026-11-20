@@ -47,6 +47,9 @@ import javafx.util.Duration;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.scene.effect.BlendMode;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.Stop;
 
 public class GameScreen extends Canvas implements GameListener {
     public static final int WIDTH = 1980;
@@ -82,6 +85,8 @@ public class GameScreen extends Canvas implements GameListener {
     private GraphicsContext drinkBatch;
     private GraphicsContext kickBatch;
     private Rectangle discoOverlay;
+    private Rectangle policeLightLeft;
+    private Rectangle policeLightRight;
     private ColorAdjust discoHue = new ColorAdjust();
     private Canvas drinksCanvas;
     private ImageView arm1View;
@@ -480,10 +485,18 @@ public class GameScreen extends Canvas implements GameListener {
         discoOverlay.setMouseTransparent(true);
         discoOverlay.setBlendMode(BlendMode.MULTIPLY);
         discoOverlay.setOpacity(0.45);
+        policeLightLeft = new Rectangle(0, 0, WIDTH / 2.0, HEIGHT);
+        policeLightRight = new Rectangle(WIDTH / 2.0, 0, WIDTH / 2.0, HEIGHT);
+        policeLightLeft.setMouseTransparent(true);
+        policeLightRight.setMouseTransparent(true);
+        policeLightLeft.setVisible(false);
+        policeLightRight.setVisible(false);
         gamePane.getChildren().add(backgroundCanvas);
         gamePane.getChildren().add(lightsView);
         gamePane.getChildren().add(this);
         gamePane.getChildren().add(discoOverlay);
+        gamePane.getChildren().add(policeLightLeft);
+        gamePane.getChildren().add(policeLightRight);
 
         gamePane.getChildren().add(seat1box);
         gamePane.getChildren().add(seat2box);
@@ -1078,9 +1091,42 @@ public class GameScreen extends Canvas implements GameListener {
         backgroundBatch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
     }
 
+    
+    private void renderPoliceLights() {
+        if (!session.isPoliceRaidActive()) {
+            policeLightLeft.setVisible(false);
+            policeLightRight.setVisible(false);
+            return;
+        }
+
+        double time = (System.currentTimeMillis() % 1500) / 1000.0;
+        boolean redFlash = time < 0.75;
+
+        policeLightLeft.setVisible(true);
+        policeLightRight.setVisible(true);
+
+        policeLightLeft.setFill(new LinearGradient(
+            0, 0, 1, 0,
+            true, CycleMethod.NO_CYCLE,
+            new Stop(0, Color.BLUE),
+            new Stop(1, Color.TRANSPARENT)
+        ));
+
+        policeLightRight.setFill(new LinearGradient(
+            0, 0, 1, 0,
+            true, CycleMethod.NO_CYCLE,
+            new Stop(0, Color.TRANSPARENT),
+            new Stop(1, Color.RED)
+        ));
+
+        policeLightLeft.setOpacity(redFlash ? 0 : 0.7);
+        policeLightRight.setOpacity(redFlash ? 0.7 : 0);
+    }
+
     public void render() {
         updateHud();
         renderDisco();
+        renderPoliceLights();
         renderBackground();
         batch.clearRect(0, 0, WIDTH, HEIGHT);
 
