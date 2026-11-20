@@ -104,6 +104,7 @@ public class GameScreen extends Canvas implements GameListener {
     private double hoverX;
     private double hoverY;
     private int lastCountdownSecond = -1;
+    private boolean hasGlass = false;
 
     @Override
     public void onPhaseChanged(Phase phase) {
@@ -147,7 +148,7 @@ public class GameScreen extends Canvas implements GameListener {
         kickCanvas = new Canvas(WIDTH, HEIGHT);
         kickBatch = kickCanvas.getGraphicsContext2D();
         melvin = new Player();
-        arm = melvin.getArm();
+        arm = melvin.getArm(false);
         handsCanvas.setMouseTransparent(true);
         drinksCanvas.setMouseTransparent(true);
         kickCanvas.setMouseTransparent(true);
@@ -299,6 +300,12 @@ public class GameScreen extends Canvas implements GameListener {
         lostLabel.setText("CLIENTS PERDUS " + session.getLostCustomers() + "/" + GameConfig.MAX_LOST);
 
         Preparation preparation = session.getPreparation();
+        boolean currentHasGlass = preparation.getGlass() != null;
+
+        if (currentHasGlass != hasGlass) {
+            hasGlass = currentHasGlass;
+            arm = melvin.getArm(hasGlass);
+        }
         ArrayList<String> parts = new ArrayList<>();
         if (preparation.getGlass() != null) {
             parts.add(glassName(preparation.getGlass()));
@@ -1012,13 +1019,13 @@ public class GameScreen extends Canvas implements GameListener {
         handsBatch.save();
         handsBatch.translate(hand1X, hand1Y);
         handsBatch.rotate(angle);
-        handsBatch.drawImage(arm, -2390, -170, 2560, 320);
+        handsBatch.drawImage(arm, -1410, -170, 1580, 320);
         handsBatch.restore();
 
         handsBatch.save();
         handsBatch.translate(hand2X, hand2Y);
         handsBatch.rotate(angle);
-        handsBatch.drawImage(arm, -2390, 170, 2560, -320);
+        handsBatch.drawImage(arm, -1410, 170, 1580, -320);
         handsBatch.restore();
         drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
     }
