@@ -77,6 +77,8 @@ public class GameScreen extends Canvas implements GameListener {
     private WritableImage cosmopolitan;
     
     private GraphicsContext batch;
+    private Canvas backgroundCanvas;
+    private GraphicsContext backgroundBatch;
     private GraphicsContext drinkBatch;
     private GraphicsContext kickBatch;
     private Rectangle discoOverlay;
@@ -160,6 +162,9 @@ public class GameScreen extends Canvas implements GameListener {
         cloverClub = tintImage(martini, Color.web("#cd07ff"));
         cosmopolitan = tintImage(martini, Color.web("#D7263D"));
 
+        backgroundCanvas = new Canvas(WIDTH, HEIGHT);
+        backgroundBatch = backgroundCanvas.getGraphicsContext2D();
+        backgroundCanvas.setMouseTransparent(true);
         batch = getGraphicsContext2D();
         drinksCanvas = new Canvas(WIDTH, HEIGHT);
         drinkBatch = drinksCanvas.getGraphicsContext2D();
@@ -475,9 +480,10 @@ public class GameScreen extends Canvas implements GameListener {
         discoOverlay.setMouseTransparent(true);
         discoOverlay.setBlendMode(BlendMode.MULTIPLY);
         discoOverlay.setOpacity(0.45);
+        gamePane.getChildren().add(backgroundCanvas);
+        gamePane.getChildren().add(lightsView);
         gamePane.getChildren().add(this);
         gamePane.getChildren().add(discoOverlay);
-        gamePane.getChildren().add(lightsView);
 
         gamePane.getChildren().add(seat1box);
         gamePane.getChildren().add(seat2box);
@@ -1067,16 +1073,16 @@ public class GameScreen extends Canvas implements GameListener {
         return tintCache.get(key);
     }
 
+    private void renderBackground() {
+        backgroundBatch.clearRect(0, 0, WIDTH, HEIGHT);
+        backgroundBatch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
+    }
+
     public void render() {
         updateHud();
         renderDisco();
-
-        batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
-        if (GameSettings.discoMode) {
-            lightsView.setEffect(discoHue);
-        } else {
-            lightsView.setEffect(null);
-        }
+        renderBackground();
+        batch.clearRect(0, 0, WIDTH, HEIGHT);
 
         batch.drawImage(seats, 310, 590, 1360, 120);
         renderCustomers();
