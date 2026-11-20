@@ -1,27 +1,49 @@
 package com.happyhour;
 
+import java.net.URL;
+
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 public class MusicPlayer {
-    private MediaPlayer player;
+    private MediaPlayer mediaPlayer;
 
     public MusicPlayer(String path) {
-        Media media = new Media(getClass().getResource(path).toExternalForm());
-        player = new MediaPlayer(media);
-        player.setCycleCount(MediaPlayer.INDEFINITE);
-        player.setVolume(1);
+        URL resource = getClass().getResource(path);
+
+        if (resource == null) {
+            System.err.println("Musique introuvable : " + path);
+            return;
+        }
+
+        Media media = new Media(resource.toExternalForm());
+        mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+        mediaPlayer.setVolume(1.0);
     }
 
     public void play() {
-        player.play();
+        if (mediaPlayer != null) {
+            mediaPlayer.play();
+        }
     }
 
     public void stop() {
-        player.stop();
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+        }
     }
 
     public void setVolume(double volume) {
-        player.setVolume(volume);
+        if (mediaPlayer != null) {
+            mediaPlayer.setVolume(volume);
+        }
+    }
+
+    public double getVolume() {
+        if (mediaPlayer != null) {
+            return mediaPlayer.getVolume();
+        }
+        return 0;
     }
 }

@@ -24,13 +24,16 @@ public class PauseScreen extends Screen {
         Button restartButton = createButton("Recommencer");
         restartButton.setOnAction(event -> game.restart());
 
+        Button settingsButton = createSecondaryButton("Réglages");
+        settingsButton.setOnAction(event -> new SettingsScreen(app, () -> start(stage)).start(stage));
+
         Button menuButton = createSecondaryButton("Retour au menu");
         menuButton.setOnAction(event -> game.backToMenu());
 
         Button quitButton = createSecondaryButton("Quitter");
         quitButton.setOnAction(event -> game.quit());
 
-        root.getChildren().addAll(continueButton, restartButton, menuButton, quitButton);
+        root.getChildren().addAll(continueButton, restartButton, settingsButton, menuButton, quitButton);
         display(stage, root);
 
         stage.getScene().setOnKeyPressed(event -> {

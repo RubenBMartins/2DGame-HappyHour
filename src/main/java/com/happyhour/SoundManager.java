@@ -1,4 +1,3 @@
-
 package com.happyhour;
 
 import java.net.URL;
@@ -45,12 +44,20 @@ public class SoundManager {
         volume = Math.max(0, Math.min(1, value));
     }
 
+    public static double getVolume() {
+        return volume;
+    }
+
     public static void setMuted(boolean value) {
         muted = value;
 
         if (muted) {
             stopAll();
         }
+    }
+
+    public static boolean isMuted() {
+        return muted;
     }
 
     public static void stopAll() {

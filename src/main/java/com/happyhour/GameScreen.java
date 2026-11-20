@@ -25,6 +25,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -45,6 +46,7 @@ import javafx.scene.transform.Scale;
 import javafx.util.Duration;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
+import javafx.scene.effect.BlendMode;
 
 public class GameScreen extends Canvas implements GameListener {
     public static final int WIDTH = 1980;
@@ -53,6 +55,7 @@ public class GameScreen extends Canvas implements GameListener {
     private Image table;
     private Image seats;
     private Image lights;
+    private ImageView lightsView;
     private Image bg;
 
     private Image orderBubble;
@@ -76,6 +79,8 @@ public class GameScreen extends Canvas implements GameListener {
     private GraphicsContext batch;
     private GraphicsContext drinkBatch;
     private GraphicsContext kickBatch;
+    private Rectangle discoOverlay;
+    private ColorAdjust discoHue = new ColorAdjust();
     private Canvas drinksCanvas;
     private ImageView arm1View;
     private ImageView arm2View;
@@ -128,6 +133,13 @@ public class GameScreen extends Canvas implements GameListener {
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),1360, 120, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
         lights = new Image(getClass().getResourceAsStream("/images/happyHourLights.png"),1850, 370, true, false);
+        lightsView = new ImageView(lights);
+        lightsView.setX(30);
+        lightsView.setY(100);
+        lightsView.setFitWidth(1850);
+        lightsView.setFitHeight(370);
+        lightsView.setSmooth(false);
+        lightsView.setMouseTransparent(true);
         kick = new Image(getClass().getResourceAsStream("/images/kick.png"),400, 400, true, false);
         
         orderBubble = new Image(getClass().getResourceAsStream("/images/orderBubble.png"),180, 260, true, false);
@@ -297,7 +309,7 @@ public class GameScreen extends Canvas implements GameListener {
                 + "-fx-font-family: 'Monospaced';"
                 + "-fx-font-weight: bold;"
                 + "-fx-font-size: 26px;");
-        label.setPrefWidth((WIDTH - 60 - 40 - 30) / 3.0);
+        label.setPrefWidth((WIDTH - 60 - 80 - 40) / 3.0);
         label.setAlignment(position);
         return label;
     }
@@ -406,7 +418,15 @@ public class GameScreen extends Canvas implements GameListener {
         bookIcon.setCursor(Cursor.HAND);
         installHover(bookIcon, "Livre de recettes");
 
-        HBox hud = new HBox(10, bookIcon, timeLabel, moneyLabel, lostLabel);
+        ImageView settingsIcon = new ImageView(new Image(getClass().getResourceAsStream("/images/settingsIcon.png")));
+        settingsIcon.setFitWidth(40);
+        settingsIcon.setFitHeight(40);
+        settingsIcon.setSmooth(false);
+        settingsIcon.setCursor(Cursor.HAND);
+        installHover(settingsIcon, "Réglages");
+        settingsIcon.setOnMouseClicked(event -> openSettings());
+
+        HBox hud = new HBox(10, bookIcon, timeLabel, moneyLabel, lostLabel, settingsIcon);
         hud.setAlignment(Pos.CENTER_LEFT);
         hud.setPrefWidth(WIDTH);
         hud.setStyle("-fx-background-color: rgba(0, 0, 0, 0.35); -fx-padding: 12 30 12 30;");
@@ -451,7 +471,14 @@ public class GameScreen extends Canvas implements GameListener {
         seat5box.setFill(Color.web("0x0051FF",0));
         seat6box.setFill(Color.web("0xAE00FF",0));
 
+        discoOverlay = new Rectangle(WIDTH, HEIGHT);
+        discoOverlay.setMouseTransparent(true);
+        discoOverlay.setBlendMode(BlendMode.MULTIPLY);
+        discoOverlay.setOpacity(0.45);
         gamePane.getChildren().add(this);
+        gamePane.getChildren().add(discoOverlay);
+        gamePane.getChildren().add(lightsView);
+
         gamePane.getChildren().add(seat1box);
         gamePane.getChildren().add(seat2box);
         gamePane.getChildren().add(seat3box);
@@ -500,6 +527,25 @@ public class GameScreen extends Canvas implements GameListener {
         setupSeat(seat5box, 4, 1240);
         setupSeat(seat6box, 5, 1480);
         installKeys(scene);
+    }
+
+    private void renderDisco() {
+        if (!GameSettings.discoMode) {
+            setEffect(null);
+            lightsView.setEffect(null);
+            discoOverlay.setVisible(false);
+            return;
+        }
+
+        setEffect(discoHue);
+
+        double time = System.currentTimeMillis() / 3000.0;
+        double hue = 0.16 + Math.sin(time) * 0.5;
+
+        discoHue.setHue(hue);
+        discoOverlay.setFill(Color.WHITE);
+        discoOverlay.setEffect(discoHue);
+        lightsView.setEffect(discoHue);
     }
 
     private void setupSeat(Rectangle box, int seat, double kickX) {
@@ -835,6 +881,17 @@ public class GameScreen extends Canvas implements GameListener {
         new PauseScreen(app, this).start(stage);
     }
 
+    public void openSettings() {
+        if (session.isOver() || session.isPoliceRaidActive()) {
+            return;
+        }
+        if (!session.isPaused()) {
+            session.togglePause();
+        }
+        stopHover();
+        new SettingsScreen(app, () -> resume()).start(stage);
+    }
+
     public void resume() {
         stage.getScene().setRoot(root);
         installKeys(stage.getScene());
@@ -1012,8 +1069,15 @@ public class GameScreen extends Canvas implements GameListener {
 
     public void render() {
         updateHud();
+        renderDisco();
+
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
-        batch.drawImage(lights, 30, 100, 1850, 370);
+        if (GameSettings.discoMode) {
+            lightsView.setEffect(discoHue);
+        } else {
+            lightsView.setEffect(null);
+        }
+
         batch.drawImage(seats, 310, 590, 1360, 120);
         renderCustomers();
         batch.drawImage(table, 0, 540, WIDTH, 540);
@@ -1034,16 +1098,16 @@ public class GameScreen extends Canvas implements GameListener {
             kickBatch.restore();
         }
 
-    double angle = Math.atan2(melvin.getY() - 1280, melvin.getX() - 990) * (180 / Math.PI);
+        double angle = Math.atan2(melvin.getY() - 1280, melvin.getX() - 990) * (180 / Math.PI);
 
-    arm1Pos.setX(melvin.getX() - 192);
-    arm1Pos.setY(melvin.getY());
-    arm1Rot.setAngle(angle);
+        arm1Pos.setX(melvin.getX() - 192);
+        arm1Pos.setY(melvin.getY());
+        arm1Rot.setAngle(angle);
 
-    arm2Pos.setX(melvin.getX() + 192);
-    arm2Pos.setY(melvin.getY());
-    arm2Rot.setAngle(angle);
+        arm2Pos.setX(melvin.getX() + 192);
+        arm2Pos.setY(melvin.getY());
+        arm2Rot.setAngle(angle);
 
-    drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
+        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
     }
 }

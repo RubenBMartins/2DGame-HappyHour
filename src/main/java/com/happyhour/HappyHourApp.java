@@ -10,6 +10,7 @@ public class HappyHourApp extends Application {
     private Stage stage;
     private ScoreBoard scoreBoard = new ScoreBoard("scores.txt");
     private MusicPlayer music;
+    private MusicPlayer musicDisco;
 
     @Override
     public void start(Stage stage) {
@@ -19,6 +20,7 @@ public class HappyHourApp extends Application {
         stage.setMaximized(true);
 
         music = new MusicPlayer("/sounds/la_suze_a_nova.mp3");
+        musicDisco = new MusicPlayer("/sounds/le_rush_du_bistrot.mp3");
         SoundManager.load("kick", "kick.mp3");
         SoundManager.load("bottle", "bottle.mp3");
         SoundManager.load("water", "water.mp3");
@@ -34,6 +36,7 @@ public class HappyHourApp extends Application {
     @Override
     public void stop() {
         music.stop();
+        musicDisco.stop();
     }
 
     public void showMenu() {
@@ -56,8 +59,19 @@ public class HappyHourApp extends Application {
         new ScoreScreen(this, scoreBoard).start(stage);
     }
 
-    public MusicPlayer getMusic() {
-        return music;
+    public MusicPlayer getMusic(boolean disco) {
+        if (disco) {
+            return musicDisco;
+        }
+        else {
+            return music;
+        }
+    }
+
+    public void switchMusic(boolean disco) {
+        music.stop();
+        musicDisco.stop();
+        getMusic(disco).play();
     }
 
     public static void main(String[] args) {
