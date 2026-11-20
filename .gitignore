@@ -3,4 +3,5 @@ target/
 .idea/
 *.iml
 ci.yml
-scores.txt
+scores.txtcode.txt
+code.txt
