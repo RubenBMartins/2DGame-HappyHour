@@ -1,27 +1,32 @@
 water.mp3, bruit du versement de liquide :
 
-https://opengameart.org
+ezwa
 https://opengameart.org/content/6-short-water-splashes
 
 kick.mp3, bruit du coup de pied:
 
-https://opengameart.org
+Independent.nu
 https://opengameart.org/content/37-hitspunches
 
 siren.mp3, bruit de la police :
 
-https://opengameart.org
+aquinn
 https://opengameart.org/content/sirens-and-alarm-noise
 
 bottle.mp3, bruit du verre :
 
-https://opengameart.org
+sinny
 https://opengameart.org/content/glass-bottle-open-close
 
 countdown.mp3, bruit du décompte final :
 
-https://opengameart.org
+kheetor
 https://opengameart.org/content/race-start-countdown
+
+cash.mp3, bruit du gain d'argent :
+
+Myoung8
+https://commons.wikimedia.org/wiki/File:Cash_register.ogg
 
 la_suze_a_nova.mp3, musique du jeu :
 
