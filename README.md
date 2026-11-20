@@ -129,7 +129,7 @@ La vue et le contrôleur (JavaFX) ne sont pas testés automatiquement : ils sont
 
   Le site est généré dans `target/site/apidocs/index.html` (ou `target/reports/apidocs/index.html` selon la version du plugin).
 
-- **Game Design Document (GDD)** : règles complètes, équilibrage, interface et architecture.
+- **[Game Design Document (GDD)](docs/GDD-Happy-Hour.pdf)** : règles complètes, équilibrage, interface et architecture.
 
 ## Équipe
 
