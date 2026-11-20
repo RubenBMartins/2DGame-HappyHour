@@ -43,6 +43,8 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.scene.transform.Scale;
 import javafx.util.Duration;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 
 public class GameScreen extends Canvas implements GameListener {
     public static final int WIDTH = 1980;
@@ -72,10 +74,14 @@ public class GameScreen extends Canvas implements GameListener {
     
     private GraphicsContext batch;
     private GraphicsContext drinkBatch;
-    private GraphicsContext handsBatch;
     private GraphicsContext kickBatch;
-    private Canvas handsCanvas;
     private Canvas drinksCanvas;
+    private ImageView arm1View;
+    private ImageView arm2View;
+    private final Translate arm1Pos = new Translate();
+    private final Translate arm2Pos = new Translate();
+    private final Rotate arm1Rot = new Rotate();
+    private final Rotate arm2Rot = new Rotate();
     private Canvas kickCanvas;
     private Player melvin;
     private Image arm;
@@ -141,15 +147,12 @@ public class GameScreen extends Canvas implements GameListener {
         cosmopolitan = tintImage(martini, Color.web("#D7263D"));
 
         batch = getGraphicsContext2D();
-        handsCanvas = new Canvas(WIDTH, HEIGHT);
-        handsBatch = handsCanvas.getGraphicsContext2D();
         drinksCanvas = new Canvas(WIDTH, HEIGHT);
         drinkBatch = drinksCanvas.getGraphicsContext2D();
         kickCanvas = new Canvas(WIDTH, HEIGHT);
         kickBatch = kickCanvas.getGraphicsContext2D();
         melvin = new Player();
         arm = melvin.getArm(false);
-        handsCanvas.setMouseTransparent(true);
         drinksCanvas.setMouseTransparent(true);
         kickCanvas.setMouseTransparent(true);
         policeImage = new Image(getClass().getResourceAsStream("/images/police.png"),160, 350, true, false);
@@ -159,6 +162,22 @@ public class GameScreen extends Canvas implements GameListener {
     public void onEveningOver(boolean defeat) {
         gameLoop.stop();
         endGame(session);
+    }
+
+    private ImageView createArmView(Translate pos, Rotate rot, boolean flipped) {
+        ImageView view = new ImageView(arm);
+        view.setX(-1410);
+        view.setY(-170);
+        view.setFitWidth(1580);
+        view.setFitHeight(320);
+        view.setSmooth(false);
+        view.setMouseTransparent(true);
+        if (flipped) {
+            view.getTransforms().setAll(pos, rot, new Scale(1, -1));
+        } else {
+            view.getTransforms().setAll(pos, rot);
+        }
+        return view;
     }
 
     @Override
@@ -305,6 +324,8 @@ public class GameScreen extends Canvas implements GameListener {
         if (currentHasGlass != hasGlass) {
             hasGlass = currentHasGlass;
             arm = melvin.getArm(hasGlass);
+            arm1View.setImage(arm);
+            arm2View.setImage(arm);
         }
         ArrayList<String> parts = new ArrayList<>();
         if (preparation.getGlass() != null) {
@@ -438,7 +459,10 @@ public class GameScreen extends Canvas implements GameListener {
         createBubbleZones(gamePane);
         gamePane.getChildren().add(drinksCanvas);
         gamePane.getChildren().add(kickCanvas);
-        gamePane.getChildren().add(handsCanvas);
+        arm1View = createArmView(arm1Pos, arm1Rot, false);
+        arm2View = createArmView(arm2Pos, arm2Rot, true);
+        gamePane.getChildren().add(arm1View);
+        gamePane.getChildren().add(arm2View);
         gamePane.getChildren().add(prepLabel);
         gamePane.getChildren().add(feedbackLabel);
         gamePane.getChildren().add(recipeView);
@@ -1006,27 +1030,16 @@ public class GameScreen extends Canvas implements GameListener {
             kickBatch.restore();
         }
 
-        double hand1X = melvin.getX() - 192;
-        double hand1Y = melvin.getY();
-        double dx = melvin.getX()-990;
-        double dy = melvin.getY()-1280;
-        double angle = (Math.atan2(dy, dx)) * (180 / Math.PI);
-        double hand2X = melvin.getX() + 192;
-        double hand2Y = melvin.getY();
+    double angle = Math.atan2(melvin.getY() - 1280, melvin.getX() - 990) * (180 / Math.PI);
 
-        handsBatch.clearRect(0, 0, WIDTH, HEIGHT);
+    arm1Pos.setX(melvin.getX() - 192);
+    arm1Pos.setY(melvin.getY());
+    arm1Rot.setAngle(angle);
 
-        handsBatch.save();
-        handsBatch.translate(hand1X, hand1Y);
-        handsBatch.rotate(angle);
-        handsBatch.drawImage(arm, -1410, -170, 1580, 320);
-        handsBatch.restore();
+    arm2Pos.setX(melvin.getX() + 192);
+    arm2Pos.setY(melvin.getY());
+    arm2Rot.setAngle(angle);
 
-        handsBatch.save();
-        handsBatch.translate(hand2X, hand2Y);
-        handsBatch.rotate(angle);
-        handsBatch.drawImage(arm, -1410, 170, 1580, -320);
-        handsBatch.restore();
-        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
+    drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
     }
 }
