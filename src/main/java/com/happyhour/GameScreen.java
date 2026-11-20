@@ -52,6 +52,7 @@ public class GameScreen extends Canvas implements GameListener {
     private static final double POPUP_TIME = 1500;
     private Image table;
     private Image seats;
+    private Image lights;
     private Image bg;
 
     private Image orderBubble;
@@ -126,6 +127,7 @@ public class GameScreen extends Canvas implements GameListener {
         table = new Image(getClass().getResourceAsStream("/images/table.png"),WIDTH,540,true, false);
         seats = new Image(getClass().getResourceAsStream("/images/seats.png"),1360, 120, true, false);
         bg = new Image(getClass().getResourceAsStream("/images/bg.png"),WIDTH, HEIGHT, true, false);
+        lights = new Image(getClass().getResourceAsStream("/images/happyHourLights.png"),1850, 370, true, false);
         kick = new Image(getClass().getResourceAsStream("/images/kick.png"),400, 400, true, false);
         
         orderBubble = new Image(getClass().getResourceAsStream("/images/orderBubble.png"),180, 260, true, false);
@@ -1011,6 +1013,7 @@ public class GameScreen extends Canvas implements GameListener {
     public void render() {
         updateHud();
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
+        batch.drawImage(lights, 30, 100, 1850, 370);
         batch.drawImage(seats, 310, 590, 1360, 120);
         renderCustomers();
         batch.drawImage(table, 0, 540, WIDTH, 540);
