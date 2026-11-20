@@ -19,16 +19,19 @@ public class MenuScreen extends Screen {
         Button playButton = createButton("Jouer");
         playButton.setOnAction(event -> app.showGame());
 
-        Button tutorialButton = createButton("Tutoriel");
+        Button tutorialButton = createSecondaryButton("Tutoriel");
         tutorialButton.setOnAction(event -> app.showTutorial());
 
-        Button scoresButton = createButton("Scores");
+        Button scoresButton = createSecondaryButton("Scores");
         scoresButton.setOnAction(event -> app.showScores());
+
+        Button settingsButton = createSecondaryButton("Réglages");
+        settingsButton.setOnAction(event -> new SettingsScreen(app, () -> app.showMenu()).start(stage));
 
         Button quitButton = createSecondaryButton("Quitter");
         quitButton.setOnAction(event -> Platform.exit());
 
-        root.getChildren().addAll(playButton, tutorialButton, scoresButton, quitButton);
+        root.getChildren().addAll(playButton, tutorialButton, scoresButton, settingsButton, quitButton);
         display(stage, root);
     }
 }

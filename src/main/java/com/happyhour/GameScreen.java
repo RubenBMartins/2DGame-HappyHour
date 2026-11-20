@@ -25,6 +25,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.effect.ColorAdjust; // RÉGLAGES
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -111,6 +112,7 @@ public class GameScreen extends Canvas implements GameListener {
     private double hoverY;
     private int lastCountdownSecond = -1;
     private boolean hasGlass = false;
+    private ColorAdjust discoEffect = new ColorAdjust(); // RÉGLAGES
 
     @Override
     public void onPhaseChanged(Phase phase) {
@@ -294,7 +296,7 @@ public class GameScreen extends Canvas implements GameListener {
                 + "-fx-font-family: 'Monospaced';"
                 + "-fx-font-weight: bold;"
                 + "-fx-font-size: 26px;");
-        label.setPrefWidth((WIDTH - 60 - 40 - 30) / 3.0);
+        label.setPrefWidth((WIDTH - 60 - 80 - 40) / 3.0); // RÉGLAGES : place pour l'engrenage
         label.setAlignment(position);
         return label;
     }
@@ -403,7 +405,16 @@ public class GameScreen extends Canvas implements GameListener {
         bookIcon.setCursor(Cursor.HAND);
         installHover(bookIcon, "Livre de recettes");
 
-        HBox hud = new HBox(10, bookIcon, timeLabel, moneyLabel, lostLabel);
+        // RÉGLAGES : engrenage en haut à droite
+        ImageView settingsIcon = new ImageView(new Image(getClass().getResourceAsStream("/images/settingsIcon.png")));
+        settingsIcon.setFitWidth(40);
+        settingsIcon.setFitHeight(40);
+        settingsIcon.setSmooth(false);
+        settingsIcon.setCursor(Cursor.HAND);
+        installHover(settingsIcon, "Réglages");
+        settingsIcon.setOnMouseClicked(event -> openSettings());
+
+        HBox hud = new HBox(10, bookIcon, timeLabel, moneyLabel, lostLabel, settingsIcon);
         hud.setAlignment(Pos.CENTER_LEFT);
         hud.setPrefWidth(WIDTH);
         hud.setStyle("-fx-background-color: rgba(0, 0, 0, 0.35); -fx-padding: 12 30 12 30;");
@@ -832,6 +843,18 @@ public class GameScreen extends Canvas implements GameListener {
         new PauseScreen(app, this).start(stage);
     }
 
+    // RÉGLAGES : ouvre l'écran des réglages en mettant le jeu en pause
+    public void openSettings() {
+        if (session.isOver() || session.isPoliceRaidActive()) {
+            return;
+        }
+        if (!session.isPaused()) {
+            session.togglePause();
+        }
+        stopHover();
+        new SettingsScreen(app, () -> resume()).start(stage);
+    }
+
     public void resume() {
         stage.getScene().setRoot(root);
         installKeys(stage.getScene());
@@ -1009,6 +1032,17 @@ public class GameScreen extends Canvas implements GameListener {
 
     public void render() {
         updateHud();
+
+        // RÉGLAGES : Mode Disco, les couleurs du bar tournent en boucle
+        if (GameSettings.discoMode) {
+            double time = System.currentTimeMillis() / 700.0;
+            discoEffect.setHue(Math.sin(time) * 0.8);
+            discoEffect.setSaturation(0.3);
+            setEffect(discoEffect);
+        } else {
+            setEffect(null);
+        }
+
         batch.drawImage(bg, 0, 0, WIDTH, HEIGHT);
         batch.drawImage(seats, 310, 590, 1360, 120);
         renderCustomers();
@@ -1030,16 +1064,16 @@ public class GameScreen extends Canvas implements GameListener {
             kickBatch.restore();
         }
 
-    double angle = Math.atan2(melvin.getY() - 1280, melvin.getX() - 990) * (180 / Math.PI);
+        double angle = Math.atan2(melvin.getY() - 1280, melvin.getX() - 990) * (180 / Math.PI);
 
-    arm1Pos.setX(melvin.getX() - 192);
-    arm1Pos.setY(melvin.getY());
-    arm1Rot.setAngle(angle);
+        arm1Pos.setX(melvin.getX() - 192);
+        arm1Pos.setY(melvin.getY());
+        arm1Rot.setAngle(angle);
 
-    arm2Pos.setX(melvin.getX() + 192);
-    arm2Pos.setY(melvin.getY());
-    arm2Rot.setAngle(angle);
+        arm2Pos.setX(melvin.getX() + 192);
+        arm2Pos.setY(melvin.getY());
+        arm2Rot.setAngle(angle);
 
-    drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
+        drawPreparation(session.getPreparation(), melvin.getX(), melvin.getY(), 1);
     }
 }
